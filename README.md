@@ -1,4 +1,27 @@
-# Govnor
-Context governor and hybrid retrieval runtime for AI agents. Combines reciprocal rank fusion (BM25 + k-NN vectors), two-stage progressive disclosure, and KV-cache prefix stability across SQLite and OpenSearch.
+# mem-plane
+The hybrid retrieval and context governance memory plane for production AI agents.
 
-Govnor is an open-source context governor and retrieval runtime built to eliminate context window degradation and token inflation in autonomous agent loops.Instead of treating agent memory like an unstructured fact dumper that mutates prompts and invalidates hardware KV-caches, Govnor manages memory through strict systems contracts:Pluggable Storage Parity: Develop locally with zero infrastructure using in-process SQLite (FTS5 full-text + sqlite-vec), and scale to production clusters using OpenSearch with identical API contracts.Reciprocal Rank Fusion (RRF): True hybrid search merging lexical BM25 token matches (exact syntax, UUIDs, function signatures) with dense vector semantics without manual score calibration.Two-Stage Progressive Disclosure: Agents query compact metadata surrogates first (search_memory), dereferencing full uncompressed artifacts ($O(1)$) only when relevant.KV-Cache Prefix Stability: Enforces deterministic prompt zoning and cache breakpoint delimiters, unlocking up to 90% KV-cache reuse on Claude, OpenAI, and vLLM inference runtimes.Ephemeral Tool Pruning: Automatically compresses bloated compiler traces, bash outputs, and JSON payloads from the active prompt window while archiving raw traces to storage.Native MCP Support: Ships with built-in Model Context Protocol server primitives to drop straight into Claude Code, Cursor, and custom agent loops.
+<div align="center">
+
+# mem-plane
+
+**The memory plane and context governance runtime for production AI agents.**
+
+[![PyPI version](https://img.shields.io/pypi/v/mem-plane.svg?style=flat-square&color=blue)](https://pypi.org/project/mem-plane/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
+[![MCP Ready](https://img.shields.io/badge/MCP-Compatible-green.svg?style=flat-square)](https://modelcontextprotocol.io/)
+
+*Stop invalidating your hardware KV-cache with unstructured prompt dumping. Build on deterministic retrieval contracts, hybrid RRF search, and zero-infra local-to-production storage parity.*
+
+[Features](#key-capabilities) • [Architecture](#the-memory-plane-architecture) • [Quickstart](#quickstart) • [Storage Parity](#storage-parity-sqlite--opensearch) • [MCP Server](#mcp-integration)
+
+</div>
+
+---
+
+## Overview
+
+Most agent memory frameworks treat context like an unstructured fact dumper. They pull top-$k$ conversational snippets and inject them into dynamic prompt sections—mutating prefix tokens on every turn, wiping out provider KV-cache reuse, and failing on exact syntactic code identifiers.
+
+**`mem-plane`** is designed as a systems-level **memory plane** sitting between persistent search stores and the LLM execution window. It pairs lexical BM25 syntax matching with dense vector semantics, serves compact metadata surrogates to prevent context bloat, and enforces strict prompt-prefix zoning to preserve ~90% prompt-caching discounts.
