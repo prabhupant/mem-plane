@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mem-plane"
+version = "0.1.0"
+description = "Production memory plane and context governor for AI agents"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "mypy>=1.10.0",
+    "ruff>=0.4.0",
+]
+sqlite = [
+    "aiosqlite>=0.20.0",
+    "sqlite-vec>=0.1.6",
+    "sqlean.py>=3.45.0",
+]
+production = [
+    "asyncpg>=0.29.0",
+    "opensearch-py>=2.6.0",
+    "aiohttp>=3.9.0",
+]
+mcp = [
+    "mcp>=1.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mem_plane"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sqlite_vec",
+    "sqlean",
+    "asyncpg",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
