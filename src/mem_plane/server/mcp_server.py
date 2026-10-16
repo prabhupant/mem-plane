@@ -5,9 +5,9 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
+from mem_plane.config import Settings, get_storage_and_index
 from mem_plane.pipeline.embeddings import DummyEmbeddingClient
 from mem_plane.server.tools import MemPlaneService
-from mem_plane.storage.sqlite.backend import SQLiteBackend
 
 
 def create_mcp_server(service: MemPlaneService) -> MCPServer:
@@ -73,13 +73,13 @@ def create_mcp_server(service: MemPlaneService) -> MCPServer:
     return server
 
 
-async def run_server_stdio(db_path: str = ":memory:") -> None:
-    """Run the MCP server over stdio transport."""
-    backend = SQLiteBackend(database=db_path)
-    await backend.initialize()
-    embedding_client = DummyEmbeddingClient()
+async def run_server_stdio(settings: Settings | None = None) -> None:
+    """Run the MCP server over stdio transport using configured storage backend."""
+    cfg = settings or Settings()
+    storage, search_index = await get_storage_and_index(cfg)
+    embedding_client = DummyEmbeddingClient(dimension=cfg.embedding_dimension)
     service = MemPlaneService(
-        storage=backend, search_index=backend, embedding_client=embedding_client
+        storage=storage, search_index=search_index, embedding_client=embedding_client
     )
     server = create_mcp_server(service)
     await server.run_stdio_async()
