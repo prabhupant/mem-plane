@@ -4,6 +4,12 @@ __pycache__/
 *$py.class
 .DS_Store
 
+# Local MCP and SQLite storage
+.mcp.json
+*.db
+*.sqlite
+*.sqlite3
+
 # C extensions
 *.so
 
