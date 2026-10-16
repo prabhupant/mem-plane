@@ -7,6 +7,7 @@ __pycache__/
 # Local MCP and SQLite storage
 .mcp.json
 *.db
+*.db-*
 *.sqlite
 *.sqlite3
 
