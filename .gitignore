@@ -6,6 +6,7 @@ __pycache__/
 
 # Local MCP and SQLite storage
 .mcp.json
+.agents/mcp_config.json
 *.db
 *.db-*
 *.sqlite
