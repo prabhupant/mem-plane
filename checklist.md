@@ -50,7 +50,7 @@ The agent updates this table at the end of each session.
 | Milestone | Tasks done | Gate passed | Notes |
 | :- | :- | :- | :- |
 | M0 Fixtures and baseline | 8 / 8 | [x] | Gate passed; all 10 hook/session fixtures committed and verified |
-| M1 Storage version 1 | 0 / 16 | [ ] | |
+| M1 Storage version 1 | 16 / 16 | [x] | Gate passed; all storage, atomicity, concurrency, and migration tests pass |
 | M2 Embeddings, retrieval, tools | 0 / 19 | [ ] | |
 | M3 Tool-output shortening | 0 / 10 | [ ] | |
 | M4 Transcript archive | 0 / 11 | [ ] | |
@@ -98,45 +98,45 @@ Goal: learn the real formats Claude Code uses before building on them.
 
 Goal: a persistent, project-scoped, atomic store.
 
-- [ ] **M1.1** `project.py`: `resolve_project(cwd)` with remote normalization, path fallback, non-git fallback, `MEM_PLANE_PROJECT_ID` override, per-process cache. (§5.2)
+- [x] **M1.1** `project.py`: `resolve_project(cwd)` with remote normalization, path fallback, non-git fallback, `MEM_PLANE_PROJECT_ID` override, per-process cache. (§5.2)
   - Verify: `tests/test_project.py` covers SSH, HTTPS, credentials in URL, `.git` suffix, no remote, no git.
-  - Commit:
-- [ ] **M1.2** `connection.py`: add `busy_timeout=5000`, create `~/.mem-plane/` with `0700` and DB with `0600`, default path `~/.mem-plane/memory.db`, remove `:memory:` default. (§4.2)
+  - Commit: `35aa524`
+- [x] **M1.2** `connection.py`: add `busy_timeout=5000`, create `~/.mem-plane/` with `0700` and DB with `0600`, default path `~/.mem-plane/memory.db`, remove `:memory:` default. (§4.2)
   - Verify: `stat -c %a ~/.mem-plane/memory.db` prints `600`.
-  - Commit:
-- [ ] **M1.3** `schema.py`: all version 1 DDL from §5.3, with the embedding dimension taken from config, not hard-coded.
-  - Commit:
-- [ ] **M1.4** sqlite-vec version check with fallback tables (no partition key, no metadata column) behind one function. (§5.3)
+  - Commit: `9cbfd86`
+- [x] **M1.3** `schema.py`: all version 1 DDL from §5.3, with the embedding dimension taken from config, not hard-coded.
+  - Commit: `1ca2d4e`
+- [x] **M1.4** sqlite-vec version check with fallback tables (no partition key, no metadata column) behind one function. (§5.3)
   - Verify: a test mocks an old `vec_version()` and checks the fallback path.
-  - Commit:
-- [ ] **M1.5** `meta` table populated with `embedding_model`, `embedding_dimension`, `schema_created_at`; refuse vector writes when the configured model differs. (§5.3)
-  - Commit:
-- [ ] **M1.6** New Pydantic models in `core/models.py`; `SurrogateHit` kept as a deprecated alias. (§5.4)
-  - Commit:
-- [ ] **M1.7** `MemoryStore` protocol in `storage/protocols.py`. (§5.5)
-  - Commit:
-- [ ] **M1.8** Sync `SQLiteStore`: projects, sessions, facts (create, update, delete, pin, get, list), history, chunks, traces, pending embeddings, write vectors.
-  - Commit:
-- [ ] **M1.9** `create_fact` does dedup by `content_hash`, supersede handling, path hashing, history row, all in one transaction. (§8.2 `record_fact` steps 1, 2, 4, 5)
-  - Commit:
-- [ ] **M1.10** Every lookup by ID also filters by `project_id`. (§5.5)
+  - Commit: `1ca2d4e`
+- [x] **M1.5** `meta` table populated with `embedding_model`, `embedding_dimension`, `schema_created_at`; refuse vector writes when the configured model differs. (§5.3)
+  - Commit: `1ca2d4e`
+- [x] **M1.6** New Pydantic models in `core/models.py`; `SurrogateHit` kept as a deprecated alias. (§5.4)
+  - Commit: `fc9d669`
+- [x] **M1.7** `MemoryStore` protocol in `storage/protocols.py`. (§5.5)
+  - Commit: `dc6f8ff`
+- [x] **M1.8** Sync `SQLiteStore`: projects, sessions, facts (create, update, delete, pin, get, list), history, chunks, traces, pending embeddings, write vectors.
+  - Commit: `dc6f8ff`
+- [x] **M1.9** `create_fact` does dedup by `content_hash`, supersede handling, path hashing, history row, all in one transaction. (§8.2 `record_fact` steps 1, 2, 4, 5)
+  - Commit: `dc6f8ff`
+- [x] **M1.10** Every lookup by ID also filters by `project_id`. (§5.5)
   - Verify: a test confirms a fact ID from project A returns nothing for project B.
-  - Commit:
-- [ ] **M1.11** Async wrapper using `asyncio.to_thread`.
-  - Commit:
-- [ ] **M1.12** Migration from version 0. (§5.6)
+  - Commit: `dc6f8ff`
+- [x] **M1.11** Async wrapper using `asyncio.to_thread`.
+  - Commit: `dc6f8ff`
+- [x] **M1.12** Migration from version 0. (§5.6)
   - Verify: `tests/storage/test_migration_v0.py` builds an old DB with the current DDL and migrates it.
-  - Commit:
-- [ ] **M1.13** Atomicity test: inject failure between fact insert and FTS insert; nothing is written. (§15.1)
-  - Commit:
-- [ ] **M1.14** Concurrency test: 8 processes writing to one temp DB with no errors. (§15.1)
-  - Commit:
-- [ ] **M1.15** Production backend moved behind `production_experimental`, unimplemented methods raise `NotImplementedError`. (§4.3)
-  - Commit:
-- [ ] **M1.16** Old `SQLiteBackend` class removed or reduced to a deprecated shim with no callers.
-  - Commit:
+  - Commit: `dc6f8ff`
+- [x] **M1.13** Atomicity test: inject failure between fact insert and FTS insert; nothing is written. (§15.1)
+  - Commit: `dc6f8ff`
+- [x] **M1.14** Concurrency test: 8 processes writing to one temp DB with no errors. (§15.1)
+  - Commit: `dc6f8ff`
+- [x] **M1.15** Production backend moved behind `production_experimental`, unimplemented methods raise `NotImplementedError`. (§4.3)
+  - Commit: `dc6f8ff`
+- [x] **M1.16** Old `SQLiteBackend` class removed or reduced to a deprecated shim with no callers.
+  - Commit: `dc6f8ff`
 
-**Gate M1:** [ ] All storage tests in §15.1 pass, and the standard checks pass.
+**Gate M1:** [x] All storage tests in §15.1 pass, and the standard checks pass.
 
 **What to check yourself:** run `sqlite3 ~/.mem-plane/memory.db ".tables"` and compare the list with §5.3.
 
@@ -382,6 +382,13 @@ Record every decision that differs from the spec, or fills a gap the spec left o
 ## Session log
 
 The agent adds one entry per working session, newest first.
+
+### 2026-11-20, session 2
+Tasks completed: M1.1 through M1.16 (Milestone 1 complete)
+Tasks in progress: None (Ready for M2)
+Blocked: none
+Test status: 72 passed, 0 failed; mypy clean (51 files); ruff clean (51 files)
+Notes: Completed full v1 SQLite storage architecture. Implemented project resolution with URL normalization, connection security with 0700/0600 permissions and busy_timeout=5000, schema v1 DDL with sqlite-vec partition/fallback detection, meta table compatibility checks, new Pydantic models (Fact, SearchHit, TraceRecord), sync SQLiteStore with dedup and supersede handling in a single atomic transaction, project isolation, async wrapper with asyncio.to_thread, v0 to v1 migration, atomicity rollback test, and 8-worker concurrent load test. Gate M1 fully passed.
 
 ### 2026-11-20, session 1
 Tasks completed: M0.1, M0.2, M0.3, M0.4, M0.5, M0.6, M0.7, M0.8 (Milestone 0 complete)
