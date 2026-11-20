@@ -162,10 +162,24 @@ class SQLiteStore(MemoryStore):
 
     def increment_compactions(self, session_id: str) -> int:
         now = datetime.now(UTC).isoformat()
-        self.conn.execute(
-            "UPDATE sessions SET compactions = compactions + 1, last_event_at = ? WHERE session_id = ?;",
-            (now, session_id),
+        cur = self.conn.execute(
+            "SELECT count(*) FROM sessions WHERE session_id = ?;", (session_id,)
         )
+        if cur.fetchone()[0] == 0:
+            self.conn.execute(
+                """
+                INSERT INTO sessions (
+                    session_id, project_id, harness, transcript_path, transcript_offset,
+                    compactions, started_at, last_event_at, ended_at
+                ) VALUES (?, '', 'claude-code', NULL, 0, 1, ?, ?, NULL);
+                """,
+                (session_id, now, now),
+            )
+        else:
+            self.conn.execute(
+                "UPDATE sessions SET compactions = compactions + 1, last_event_at = ? WHERE session_id = ?;",
+                (now, session_id),
+            )
         self.conn.commit()
         cur = self.conn.execute(
             "SELECT compactions FROM sessions WHERE session_id = ?;", (session_id,)

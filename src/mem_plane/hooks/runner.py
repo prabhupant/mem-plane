@@ -106,6 +106,13 @@ def run_hook(event: str) -> int:
             end_payload = SessionEndInput.model_validate(data)
             result = handle_session_end(end_payload, settings)
 
+        elif normalized_event in ("sessionstart", "start"):
+            from mem_plane.hooks.inputs import SessionStartInput
+            from mem_plane.hooks.session_start import handle_session_start
+
+            start_payload = SessionStartInput.model_validate(data)
+            result = handle_session_start(start_payload, settings)
+
         if result is not None:
             sys.stdout.write(json.dumps(result))
             sys.stdout.flush()
