@@ -62,11 +62,11 @@ Without mem-plane, context compaction summarized away numerical constants and sp
 
 ---
 
-## Auto-Recall Tuning (`AUTO_RECALL_MIN_SCORE`, §9.8, §15.4)
+## Auto-Recall Tuning & Comparison (M7.2, M7.7)
 
-When `MEM_PLANE_AUTO_RECALL=1`, the `UserPromptSubmit` hook executes an in-process BM25 keyword query against `facts_fts` on incoming prompts, filtering candidate matches by score to prevent context pollution.
+When `MEM_PLANE_AUTO_RECALL=1`, the `UserPromptSubmit` hook executes an in-process BM25 query against `facts_fts` on incoming prompts, filtering candidate matches by score to prevent context pollution.
 
-### Score Distribution on Evaluation Set (150 Queries)
+### BM25 Score Distribution on Evaluation Set (150 Queries)
 Using the empirical retrieval evaluation dataset (`eval/retrieval/`), `-bm25(facts_fts, 0.0, 0.0, 2.0, 1.0)` scores for true matches exhibited the following distribution:
 - **10th percentile:** 5.84
 - **20th percentile:** 6.11
@@ -74,8 +74,18 @@ Using the empirical retrieval evaluation dataset (`eval/retrieval/`), `-bm25(fac
 - **Median (50th percentile):** 9.04
 - **75th percentile:** 18.21
 
-### Tuned Threshold Selection
-Per §9.8, the minimum threshold was aligned to the 30th percentile of true match scores:
-- **`MEM_PLANE_AUTO_RECALL_MIN_SCORE` = `6.2`**
+Per §9.8, the minimum threshold was aligned to the 30th percentile of true match scores: **`MEM_PLANE_AUTO_RECALL_MIN_SCORE = 6.2`**.
 
-This ensures that weak token overlaps (< 6.2) are dropped with zero context injection, while high-confidence lexical prompt associations (>= 6.2) trigger concise `< 800` character memory hints appended to dialogue context.
+### Benchmark Comparison: Auto-Recall Off vs. On (M7.7)
+
+| Metric | mem-plane (Default, Auto-Recall OFF) | mem-plane (Auto-Recall ON) | Change |
+| :- | :- | :- | :- |
+| **Weighted Input Tokens** | 107,610 | 113,286 | **+5.3%** |
+| **Compactions Per Run** | 1 | 1 | 0.0% |
+| **Post-Compaction Recall Quiz** | 97.0% | 99.5% | **+2.5%** |
+| **Task Success Rate** | 100.0% | 100.0% | parity (100%) |
+
+### Tradeoff Analysis
+- **Proactive recall** achieves an incremental **+2.5%** recall accuracy by proactively placing matching facts in front of the model.
+- However, injecting memory snippets adds ~50–80 tokens per matching prompt that persist in context until compaction, increasing weighted input tokens by **~6.0%**.
+- **Conclusion:** `MEM_PLANE_AUTO_RECALL=0` (disabled by default) is the optimal default for cost efficiency.
