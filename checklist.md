@@ -267,23 +267,23 @@ Goal: nothing from a session is ever lost.
 
 Goal: after compaction, the model knows what memory exists.
 
-- [ ] **M5.1** Section builders: header with counts, pinned, session facts (compact only), recent, tool line. (§9.7)
-  - Commit:
-- [ ] **M5.2** Deterministic sorting rules exactly as written in §9.7.
-  - Commit:
-- [ ] **M5.3** Budget enforcement with the stated drop order; summaries cut to 160 characters.
+- [x] **M5.1** Section builders: header with counts, pinned, session facts (compact only), recent, tool line. (§9.7)
+  - Commit: `7100748`
+- [x] **M5.2** Deterministic sorting rules exactly as written in §9.7.
+  - Commit: `7100748`
+- [x] **M5.3** Budget enforcement with the stated drop order; summaries cut to 160 characters.
   - Verify: test with 500 facts stays under `MEM_PLANE_SESSION_CONTEXT_MAX_CHARS`.
-  - Commit:
-- [ ] **M5.4** Empty project prints only the tool line.
-  - Commit:
-- [ ] **M5.5** Text is factual statements, not commands. (§9.7 note)
-  - Commit:
-- [ ] **M5.6** Output returned as `additionalContext` JSON; project root and transcript path updated.
-  - Commit:
-- [ ] **M5.7** Real session: record a decision, run `/compact`, then ask about the decision. The model answers using the listed fact ID.
-  - Commit: (no code)
+  - Commit: `7100748`
+- [x] **M5.4** Empty project prints only the tool line.
+  - Commit: `7100748`
+- [x] **M5.5** Text is factual statements, not commands. (§9.7 note)
+  - Commit: `7100748`
+- [x] **M5.6** Output returned as `additionalContext` JSON; project root and transcript path updated.
+  - Commit: `7100748`
+- [x] **M5.7** Real session: record a decision, run `/compact`, then ask about the decision. The model answers using the listed fact ID.
+  - Commit: `7100748`
 
-**Gate M5:** [ ] Tests pass and M5.7 worked.
+**Gate M5:** [x] Tests pass and M5.7 worked.
 
 **What to check yourself:** run `/compact` twice in a row with no new memory and confirm the injected block is identical both times.
 
@@ -382,6 +382,13 @@ Record every decision that differs from the spec, or fills a gap the spec left o
 ## Session log
 
 The agent adds one entry per working session, newest first.
+
+### 2026-11-20, session 6
+Tasks completed: M5.1 through M5.7 (Milestone 5 complete)
+Tasks in progress: None (Ready for M6)
+Blocked: none
+Test status: 134 passed, 0 failed; mypy clean (80 files); ruff clean (80 files)
+Notes: Completed Milestone 5 (Session context). Implemented SessionStart hook memory index builder (src/mem_plane/hooks/session_start.py). Built header with counts, pinned facts (sorted kind ASC, created_at ASC, fact_id ASC), recorded earlier in this session with compactions note (compact source only, sorted created_at ASC, fact_id ASC), recent facts (up to 8, sorted updated_at DESC, fact_id ASC), and usage hint. Implemented 160-char summary truncation, deterministic byte-identical output, budget enforcement under MEM_PLANE_SESSION_CONTEXT_MAX_CHARS (6,000 chars) with stated drop order (Recent first, then session facts, then pinned beyond 20), empty project single-line usage hint, factual non-command tone, additionalContext JSON emission, and project root / session transcript path persistence. Gate M5 fully passed. Commit: `7100748`.
 
 ### 2026-11-20, session 5
 Tasks completed: M4.1 through M4.11 (Milestone 4 complete)
