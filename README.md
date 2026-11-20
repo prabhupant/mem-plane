@@ -2,291 +2,294 @@
 
 <div align="center">
 
-### **The Hybrid Retrieval & Context Governance Memory Plane for Production AI Agents**
+### **Zero-Infra Memory Harness & Context Governor for Claude Code**
 
-*Stop busting your hardware KV-cache with unstructured prompt dumping. Build on deterministic retrieval contracts, hybrid RRF search, and zero-infra local-to-production storage parity.*
+*Prune terminal spam, preserve prompt cache prefix, lossless transcript archive, and hybrid memory retrieval—embedded directly into Claude Code via lifecycle hooks.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue.svg?style=flat-square)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg?style=flat-square)](https://www.python.org/downloads/)
 [![Strict Typing](https://img.shields.io/badge/mypy-strict-brightgreen.svg?style=flat-square)](https://mypy-lang.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square)](https://github.com/astral-sh/ruff)
 [![MCP Ready](https://img.shields.io/badge/MCP-2.0%20Compatible-green.svg?style=flat-square)](https://modelcontextprotocol.io/)
-[![Tests](https://img.shields.io/badge/tests-34%20passed-success.svg?style=flat-square)](https://github.com/prabhupant/mem-plane)
 
-[Key Problems Solved](#1-key-problems-solved) • [The 4-Zone Governor](#2-the-4-zone-context-governor) • [How It Works](#3-core-architecture--mechanics) • [Claude Code Setup](#4-claude-code-setup) • [Python SDK](#5-python-sdk--quickstart) • [Inspecting the Database](#6-inspecting-the-database) • [Dev-to-Prod Parity](#7-dev-to-prod-storage-parity)
+[Why mem-plane](#why-mem-plane) • [Installation](#installation) • [How It Works](#how-it-works) • [Benchmarks](#benchmarks) • [MCP Tools](#mcp-tools) • [CLI Reference](#cli-reference) • [Python SDK](#python-sdk)
 
 </div>
 
 ---
 
-## 1. Key Problems Solved
+## Why mem-plane?
 
-Most agent memory frameworks treat context like an unstructured fact dumper. They pull top-$k$ conversational chunks and inject them into dynamic prompt sections—mutating prefix tokens on every turn, destroying provider prompt-caching discounts, and failing on exact syntactic code identifiers.
+When using Claude Code on real projects, three problems routinely waste tokens and degrade reasoning:
+1. **Tool-Output Flooding:** Test suites, compiler errors, and build tools dump hundreds of lines into the context window, consuming tokens and pushing valuable context out of the window.
+2. **Context Loss on Compaction:** When context window fills and Claude Code compacts, specific decisions, architectural constraints, and numerical parameters are summarized away or forgotten.
+3. **Prefix Prompt-Cache Busted:** Unstructured, dynamic prompt rewriting breaks Anthropic's left-to-right prompt caching discounts.
 
-`mem-plane` solves the four fundamental failure modes of production agent memory:
+`mem-plane` solves these problems automatically with zero infrastructure:
+- **Fast-path tool pruning (<15 ms):** Automatically intercepts verbose tool outputs (`Bash`, web fetches), extracts deduplicated failure signals with line numbers, replaces the output with a compact preview, and stores the raw trace out-of-band in SQLite.
+- **Session context rehydration:** Injects pinned architectural rules and recent memories at `SessionStart` (startup, resume, and after `/compact`) within a strict character budget.
+- **Lossless transcript archive:** Incrementally archives conversational turns in the background with automated secrets redaction (AWS, GitHub, Slack, OpenAI, Anthropic, private keys).
+- **Hybrid RRF retrieval:** Combines exact-token BM25 keyword search (`SQLite FTS5`) and dense vector search (`sqlite-vec`) without external database daemons.
+- **Prompt cache stability:** Fixed tool schemas and immutable descriptions in `server/tool_text.py` guarantee prompt cache prefix stability.
 
-| # | The Failure Mode in Naive Agents | How `mem-plane` Solves It |
+---
+
+## Installation
+
+### 1. Install via pip
+
+```bash
+# Install with embedding support (recommended)
+pip install "mem-plane[embed]"
+
+# Run doctor to verify system requirements and SQLite extensions
+mem-plane doctor
+```
+
+### 2. Configure Claude Code
+
+You can use `mem-plane` either as a Claude Code Plugin or by manually adding the MCP server and hooks.
+
+#### Option A: Claude Code Plugin (Recommended)
+
+Point Claude Code to the `plugin/` directory in this repository:
+
+```bash
+claude plugin add /path/to/mem-plane/plugin
+```
+
+#### Option B: Manual Configuration
+
+Add `mem-plane` to your Claude Code MCP settings (`~/.claude/mcp.json` or project `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "mem-plane": {
+      "command": "mem-plane",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Configure hooks in `~/.claude/hooks.json` or your project `.claude/hooks.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "mem-plane hook session-start"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "mem-plane hook post-tool-use"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "mem-plane hook stop"
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "mem-plane hook pre-compact"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "type": "command",
+        "command": "mem-plane hook session-end"
+      }
+    ]
+  }
+}
+```
+
+Run `mem-plane doctor --print-hooks` to generate the exact JSON configuration for your shell environment.
+
+---
+
+## How It Works
+
+```
+                         Claude Code Engine
+                                 │
+     ┌───────────────────────────┴───────────────────────────┐
+     │ Lifecycle Hooks                                       │ MCP Protocol
+     │ (Fast Path: <15ms, zero heavy imports)                │ (Stdio Service)
+     ▼                                                       ▼
+Hook Runner (`mem-plane hook <name>`)          MCP Service (`mem-plane serve`)
+├── SessionStart (Inject memory index)          ├── search_memory (Hybrid 4-list RRF)
+├── PostToolUse (Prune tool spam to traces)     ├── get_memory (Facts & Raw Traces)
+├── Stop (Incremental transcript archive)       ├── record_fact (Curated facts)
+├── PreCompact (Flush transcript & flag)        ├── update_memory (Edit facts)
+└── SessionEnd (Finalize session archive)       ├── forget_memory (Soft delete)
+                                                ├── pin_memory (Always-on facts)
+                                                └── memory_status (DB health & stats)
+     │                                                       │
+     └───────────────────────────┬───────────────────────────┘
+                                 │
+                                 ▼
+                     Local SQLite Storage Engine
+                     Path: `~/.mem-plane/memory.db`
+        ┌─────────────────────────────────────────────────────────┐
+        │ WAL Mode + Busy Timeout 5000ms + Strict Project Scoping │
+        ├────────────────────────────┬────────────────────────────┤
+        │ Curated Relational Tables  │ Hybrid Search Indices      │
+        │ • `projects`               │ • `facts_fts` (FTS5 BM25)  │
+        │ • `facts` (f_...)          │ • `facts_vec` (sqlite-vec) │
+        │ • `fact_history` (audit)   │ • `episodes_fts` (FTS5)    │
+        │ • `sessions`               │ • `episodes_vec` (sqlite)  │
+        │ • `episodes` (ep_...)      │                            │
+        │ • `tool_traces` (t_...)    │                            │
+        └────────────────────────────┴────────────────────────────┘
+```
+
+1. **Invisible Lifecycle Interception:** Claude Code invokes `mem-plane hook <name>` over stdio. Hook execution is optimized to finish in <15 ms, importing only standard library modules and SQLite.
+2. **Tool-Output Pruning:** When a command outputs more than 15 lines or 600 characters, `PostToolUse` stores the unpruned stdout/stderr in SQLite table `tool_traces` (`t_` + 10 hex). Claude Code receives a preview banner containing head lines, extracted failure signals with line numbers, and tail lines. If needed, the model calls `get_memory(id="t_...")` with optional grep or line filters.
+3. **Fail-Open Reliability:** Any hook exception is silently appended to `~/.mem-plane/hooks.log` while the original payload is returned unchanged with exit code 0. `mem-plane` will never interrupt an active coding session.
+4. **Project Scoping:** Every memory is scoped to a deterministic `project_id` derived from the git remote URL (or repository root path). Memories never leak across projects.
+
+---
+
+## Benchmarks
+
+Empirical evaluation against baseline Claude Code on multi-turn software development tasks (5 tasks × 5 runs each, 50 total runs; see [`docs/benchmarks.md`](docs/benchmarks.md)):
+
+| Metric | Baseline Claude Code | With mem-plane | Change |
+| :--- | :--- | :--- | :--- |
+| **Weighted Input Tokens** | 236,412 (208,204 - 274,246) | 107,610 (94,221 - 125,352) | **-54.5%** |
+| **Compactions Per Run** | 2 (min 2, max 2) | 1 (min 1, max 1) | **-50.0%** |
+| **Post-Compaction Recall Quiz** | 45.0% (40.0% - 50.0%) | 97.0% (95.0% - 99.0%) | **+52.0%** |
+| **Task Success Rate** | 100.0% | 100.0% | Parity (100%) |
+
+*Cost-weighted multipliers per Anthropic published pricing ratios: 1.0x uncached input, 1.25x cache creation write, 0.10x cache read.*
+
+---
+
+## MCP Tools
+
+The stdio MCP server exposes 7 standardized tools:
+
+| Tool | Parameters | Description |
 | :--- | :--- | :--- |
-| **1** | **Hardware KV-Cache Invalidation:** Dynamic memory rewrites bust prompt prefix caches on every turn. | Enforces **4 immutable prompt zones** with static cache breakpoints (`<!-- MEM_PLANE_CACHE_BREAKPOINT -->`), locking in **80–90% caching discounts** on Claude, OpenAI, and vLLM. |
-| **2** | **Technical Retrieval Blindness:** Pure vectors fail on exact symbols, compiler errors, and CLI flags. | Implements **Reciprocal Rank Fusion (RRF)** to fuse BM25 lexical tokens with dense vectors without fragile manual score normalization. |
-| **3** | **Context Window Flooding:** Single-stage RAG dumps multi-kilobyte chunks into the prompt. | Implements **Two-Stage Progressive Disclosure**: agents query ~30-token surrogate summaries and selectively dereference raw bodies ($O(1)$) only when needed. |
-| **4** | **Heavy Infrastructure Friction:** Local agents require complex Docker setups for vector stores. | **Zero-Infra Storage Parity:** Embedded SQLite (`FTS5` + `sqlite-vec`) out-of-the-box locally, with a one-flag config switch to PostgreSQL & OpenSearch in production. |
+| `search_memory` | `query`, `limit?`, `min_score?` | Hybrid search (FTS5 BM25 + sqlite-vec RRF) over curated facts and past episode transcripts. |
+| `get_memory` | `id`, `grep?`, `lines?` | Retrieve full fact details (`f_...`) or view/grep pruned tool traces (`t_...`). |
+| `record_fact` | `summary`, `body`, `kind`, `paths?`, `supersedes?`, `pin?` | Store a project decision, rule, bugfix, convention, context, or note. |
+| `update_memory` | `fact_id`, `summary?`, `body?`, `paths?` | Update an existing fact while recording audit history in `fact_history`. |
+| `forget_memory` | `fact_id`, `reason?` | Soft-delete a fact when it is no longer relevant. |
+| `pin_memory` | `fact_id`, `pinned` | Pin or unpin a critical rule so it is always present at session start. |
+| `memory_status` | *(none)* | Inspect database health, fact counts, and embedding queue depth. |
 
 ---
 
-## 2. The 4-Zone Context Governor
+## CLI Reference
 
-Prompt caching in frontier models works strictly **left-to-right**. Any character change near the top forces the hardware to recompute the entire prompt from that point onward. 
+`mem-plane` provides a comprehensive command-line suite:
 
-`mem-plane` structures every prompt into 4 mathematically disciplined zones:
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ ZONE 1: Static System & Pre-Token Hydration                 │
-│ • Byte-identical across turns                               │
-│ • Static system instructions                                │
-│ • Deterministically formatted tenant rules & user state     │
-├─────────────────────────────────────────────────────────────┤
-│ ZONE 2: Cache Breakpoint Delimiter Marker                   │
-│ • Exact static string:                                      │
-│   \n<!-- MEM_PLANE_CACHE_BREAKPOINT -->\n                   │
-├─────────────────────────────────────────────────────────────┤
-│ ZONE 3: Retrieved Memory Surrogates                         │
-│ • Compact token surrogates (~30 tokens each)                │
-│ • Deterministic sort by `fact_id` ascending                 │
-│ • Identical recall subsets produce 100% identical tokens   │
-├─────────────────────────────────────────────────────────────┤
-│ ZONE 4: Active Dialogue Turns                               │
-│ • Dynamic user messages and assistant responses             │
-│ • Pruned/compressed tool outputs (EphemeralToolPruner)      │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Core Architecture & Mechanics
-
-```
-                       User Prompt / Agent Request
-                                    │
-                                    ▼
-                      Model Context Protocol (MCP)
-                      ├── search_episodic_memory (Hybrid RRF)
-                      ├── inspect_fact_provenance (O(1) Raw Text)
-                      ├── dereference_raw_trace (Unpruned Logs)
-                      └── record_fact (Episodic Ingestion)
-                                    │
-            ┌───────────────────────┴───────────────────────┐
-            ▼                                               ▼
-   [Local Development]                            [Production Cluster]
-   `SQLiteBackend`                                Postgres + OpenSearch
-   ├── `facts` (Relational JSON)                  ├── PostgreSQL (`asyncpg`)
-   ├── `facts_fts` (FTS5 BM25)                    │   ├── `facts` (JSONB)
-   ├── `facts_vec` (sqlite-vec 384-d)             │   ├── `hydration_profiles`
-   ├── `hydration_profiles`                       │   └── `tool_traces`
-   └── `tool_traces`                              └── OpenSearch (`opensearch-py`)
-                                                      ├── BM25 (`summary^2`, `content`)
-                                                      └── Lucene HNSW knn_vector
-```
-
-### Reciprocal Rank Fusion (RRF)
-Combines dense semantic vectors with lexical BM25 token frequencies without brittle score normalization:
-$$RRF\_Score(d) = \sum_{m \in M} \frac{1}{60 + \text{rank}_m(d)}$$
-- **Semantic Queries** (*"how to refresh auth sessions"*): Dense vector search floats relevant concepts to the top.
-- **Syntactic Queries** (*"--no-cov"*, *"SIGSEGV 139"*, *"auth_jwt_v2"*): BM25 lexical search finds exact tokens.
-- **Both Match:** The document is scored as the undeniable top result.
-
-### Ephemeral Tool Pruning
-Noisy test suites (`pytest`), compiler dumps, and terminal outputs can easily spam 200+ lines into the context window.
-1. Any tool output exceeding **15 lines** or **600 characters** is automatically intercepted.
-2. The full raw trace is saved out-of-band to database storage.
-3. The active conversation turn receives a high-signal 10-line preview with an actionable `Trace ID`:
-```text
-[TOOL OUTPUT TRUNCATED: 184 lines. Trace ID: trc-a1b2c3. Call dereference_raw_trace('trc-a1b2c3') for full trace.]
-tests/test_crypto.py:12 ...
-... [truncated 174 lines] ...
-FAILED tests/test_crypto.py::test_argon2 - AssertionError: hash mismatch
-```
-4. The agent can examine the preview, dereference the full trace via `dereference_raw_trace` if needed, and **never re-executes heavy build/test commands** just to re-read output.
-
----
-
-## 4. Claude Code Setup
-
-`mem-plane` provides ready-to-use skills and configuration for **Claude Code** out of the box.
-
-Run this single command in your project directory:
 ```bash
-claude mcp add mem-plane \
-  -e MEM_PLANE_STORAGE_BACKEND=sqlite \
-  -e MEM_PLANE_SQLITE_DB_PATH=/path/to/mem-plane/agent_memory.db \
-  -- /path/to/mem-plane/.venv/bin/python -m mem_plane.server.mcp_server
-```
+# Verify environment and configuration
+mem-plane doctor
+mem-plane doctor --print-hooks
 
-Claude Code will automatically detect the server and activate the skills in [`.claude/skills/`](./.claude/skills):
-* **`memplane-search.md`**: Guides the agent to query ~30-token surrogates first.
-* **`memplane-provenance.md`**: Teaches the agent to audit fact origins and commit SHAs.
-* **`memplane-trace.md`**: Instructs the agent how to inspect truncated outputs without re-running commands.
-* **`memplane-remember.md`**: Teaches the agent to extract and record durable architectural decisions and rules.
+# Launch MCP server over stdio
+mem-plane serve
+
+# Inspect project memory statistics
+mem-plane status
+
+# Search memory directly from terminal
+mem-plane search "authentication token refresh"
+
+# Process pending vector embeddings
+mem-plane embed-pending
+
+# Rebuild search indices
+mem-plane reindex
+
+# Purge expired traces (>14 days) and optimize FTS index
+mem-plane gc
+
+# Export and import project memories (JSONL)
+mem-plane export > memories.jsonl
+mem-plane import memories.jsonl
+
+# Run token savings benchmark
+mem-plane bench
+```
 
 ---
 
-## 5. Python SDK & Quickstart
+## Python SDK
 
-### Installation
-```bash
-# Core package with local SQLite FTS5 and sqlite-vec
-pip install "mem-plane[sqlite]"
+For custom agent loops and prompt engineering pipelines, `mem-plane` provides modular SDK utilities:
 
-# Optional production cluster dependencies (PostgreSQL + OpenSearch)
-pip install "mem-plane[production]"
+### 4-Zone Context Governor
 
-# Model Context Protocol support
-pip install "mem-plane[mcp]"
-```
-
-### Basic Usage
+Enforce prompt cache stability by separating static system prompts from dynamic turns:
 
 ```python
-import asyncio
-from mem_plane.core.models import FactEntity
-from mem_plane.pipeline.embeddings import DummyEmbeddingClient
-from mem_plane.storage.sqlite.backend import SQLiteBackend
+from mem_plane.sdk import PromptZoneGovernor, SurrogateFact
 
-async def main():
-    async with SQLiteBackend("agent_memory.db") as backend:
-        client = DummyEmbeddingClient()
+governor = PromptZoneGovernor()
 
-        # 1. Store an architectural fact with dense embeddings
-        fact = FactEntity(
-            fact_id="auth-001",
-            tenant_id="default",
-            summary="JWT expiry configured to 15m in auth_service.py",
-            raw_content="Set ACCESS_TOKEN_EXPIRE_MINUTES = 15 to enforce stricter token turnover.",
-            source_type="codebase",
-            provenance_metadata={"author": "alice", "path": "auth_service.py"},
-        )
-        vec = await client.embed_text(fact.summary + " " + fact.raw_content)
-        await backend.save_fact_with_embedding(fact, vec)
+# Zone 1: Static instructions & tenant hydration
+zone1 = "You are a software engineer working on an order processing system."
 
-        # 2. Hybrid search (Lexical BM25 + Vector k-NN fused with RRF)
-        query_vec = await client.embed_text("jwt expiration timeout")
-        hits = await backend.hybrid_search("auth_service.py JWT", query_vec, top_k=3)
+# Zone 3: Curated memory surrogates (sorted deterministically by fact_id)
+zone3 = [
+    SurrogateFact(
+        fact_id="f_000000000001",
+        summary="Always use integer cents for monetary calculations.",
+    )
+]
 
-        for hit in hits:
-            print(f"[{hit.fact_id}] {hit.summary} (score: {hit.score:.4f}, path: {hit.source_path})")
+# Zone 4: Dialogue turns
+zone4 = [{"role": "user", "content": "How should order discounts be applied?"}]
 
-asyncio.run(main())
+rendered_prompt = governor.render(
+    zone1_text=zone1,
+    zone3_facts=zone3,
+    zone4_turns=zone4,
+)
+```
+
+### In-Process Tool Pruner
+
+Shorten verbose outputs directly within Python agents:
+
+```python
+from mem_plane.sdk import EphemeralToolPruner
+
+pruner = EphemeralToolPruner(line_budget=15, char_budget=600)
+
+preview, raw_trace = pruner.prune(
+    tool_name="pytest",
+    raw_output=large_test_output,
+)
+
+if raw_trace:
+    print(f"Pruned! Trace ID: {raw_trace.trace_id}")
+    print(f"Preview:\n{preview}")
 ```
 
 ---
 
-## 6. Inspecting the Database
+## Storage & Privacy
 
-The local database lives in `agent_memory.db` in your project root.
+All data is stored locally in `~/.mem-plane/memory.db`. No code, transcripts, or queries are ever sent to external cloud vector databases or third-party servers.
 
-### Quick Terminal Inspection
-```bash
-.venv/bin/python -c "
-import sqlean as sqlite3
-conn = sqlite3.connect('agent_memory.db')
-cursor = conn.cursor()
-print('=== 🧠 STORED FACTS ===')
-for row in cursor.execute('SELECT fact_id, summary, source_type, created_at FROM facts').fetchall():
-    print(f'[{row[0]}] ({row[2]} @ {row[3]}):\n  {row[1]}\n')
-"
-```
-
-### Interactive SQLite Shell
-```bash
-sqlite3 agent_memory.db
-```
-```sql
-.mode column
-.headers on
-SELECT fact_id, summary, source_type, created_at FROM facts;
-SELECT trace_id, length(raw_trace) AS bytes, created_at FROM tool_traces;
-.quit
-```
-
-*(Note: SQLite WAL sidecar files `agent_memory.db-wal` and `agent_memory.db-shm` are enabled for high-concurrency read/writes and are automatically ignored in Git.)*
+See [`docs/storage.md`](docs/storage.md) for architectural details on the SQLite decision and [`docs/architecture.md`](docs/architecture.md) for the complete systems design.
 
 ---
 
-## 7. Dev-to-Prod Storage Parity
+## License
 
-To scale from local SQLite to a production cluster, **change zero lines of code**. Simply switch your environment variables:
-
-```bash
-# Enable production mode
-export MEM_PLANE_STORAGE_BACKEND=production
-
-# Point to your production infrastructure
-export MEM_PLANE_OPENSEARCH_URL=https://opensearch.internal:9200
-export MEM_PLANE_OPENSEARCH_INDEX=mem_plane_facts
-export MEM_PLANE_POSTGRES_DSN=postgresql://user:pass@postgres.internal:5432/mem_plane
-```
-
-* **OpenSearch** handles distributed Lucene HNSW vector search (`knn_vector`) and multi-field BM25 keyword matching.
-* **PostgreSQL** stores transactional document bodies, JSONB audit trails, and execution traces.
-* **Your Agent** connects to the exact same MCP endpoints without noticing any difference.
-
----
-
-## 8. Repository Layout
-
-```text
-mem-plane/
-├── .claude/                          # Claude Code Integration
-│   └── skills/                       # On-demand Claude Code workflow skills
-│       ├── memplane-search.md
-│       ├── memplane-provenance.md
-│       ├── memplane-trace.md
-│       └── memplane-remember.md
-├── docs/                             # Architecture & Economic Documentation
-│   ├── architecture.md               # Topology and read/write flow diagrams
-│   ├── kv_cache_economics.md         # 4-zone prompt caching breakdown
-│   └── mcp_setup.md                  # Host configuration guide
-├── src/mem_plane/
-│   ├── config.py                     # Pydantic BaseSettings & backend factory
-│   ├── core/
-│   │   ├── governor.py               # 4-zone prompt assembler & cache guard
-│   │   ├── models.py                 # Pydantic v2 schemas (FactEntity, SurrogateHit)
-│   │   ├── pruner.py                 # Ephemeral tool trace truncator
-│   │   └── rrf.py                    # Reciprocal Rank Fusion algorithm
-│   ├── pipeline/
-│   │   └── embeddings.py             # Deterministic offline & neural embeddings
-│   ├── server/
-│   │   ├── mcp_server.py             # FastMCP stdio server daemon
-│   │   └── tools.py                  # Exposed MCP tool handlers
-│   └── storage/
-│       ├── protocols.py              # MetadataStorage & SearchIndex contracts
-│       ├── production/               # Postgres (asyncpg) & OpenSearch clients
-│       └── sqlite/                   # FTS5 + sqlite-vec hybrid storage
-├── tests/                            # Comprehensive zero-infra test suite
-│   ├── server/                       # End-to-end MCP tool integration tests
-│   └── storage/                      # SQLite & OpenSearch hybrid search tests
-└── pyproject.toml                    # Hatchling build specification
-```
-
----
-
-## 9. Development & Testing
-
-```bash
-# Run full unit and integration test suite (34 tests passing in <1s)
-pytest
-
-# Strict type checking (100% compliant)
-mypy src tests
-
-# Fast linting and formatting
-ruff check src tests
-ruff format src tests
-```
-
----
-
-## 📄 License
-
-MIT Licensed. Free for personal and commercial production use.
+MIT License. See [LICENSE](LICENSE) for details.

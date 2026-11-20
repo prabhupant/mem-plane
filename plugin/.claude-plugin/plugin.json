@@ -1,0 +1,8 @@
+{
+  "name": "mem-plane",
+  "version": "0.1.0",
+  "description": "Local memory plane and context manager for Claude Code",
+  "author": {
+    "name": "mem-plane"
+  }
+}

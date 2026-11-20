@@ -39,6 +39,8 @@ MODELS: dict[str, EmbeddingModelSpec] = {
     ),
 }
 
+SUPPORTED_MODELS: dict[str, int] = {k: v.dimension for k, v in MODELS.items()}
+
 
 def _normalize(vec: Sequence[float]) -> list[float]:
     """Normalize a vector to unit L2 length."""

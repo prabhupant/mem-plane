@@ -1,4 +1,9 @@
-"""Context governor and KV-cache prefix invariance manager."""
+"""Context governor and KV-cache prefix invariance manager (Section 13).
+
+Optional helper for developers building their own agent loop with the Anthropic or OpenAI APIs.
+"""
+
+from __future__ import annotations
 
 import json
 from collections.abc import Sequence

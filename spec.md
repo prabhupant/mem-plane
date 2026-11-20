@@ -303,16 +303,25 @@ Replace `src/mem_plane/core/models.py` with these. Keep `SurrogateHit` as a depr
 
 ```python
 class FactKind(StrEnum):
-    DECISION = "decision"; RULE = "rule"; BUGFIX = "bugfix"
-    CONVENTION = "convention"; CONTEXT = "context"; NOTE = "note"
+    DECISION = "decision"
+    RULE = "rule"
+    BUGFIX = "bugfix"
+    CONVENTION = "convention"
+    CONTEXT = "context"
+    NOTE = "note"
+
 
 class FactStatus(StrEnum):
-    ACTIVE = "active"; SUPERSEDED = "superseded"; DELETED = "deleted"
+    ACTIVE = "active"
+    SUPERSEDED = "superseded"
+    DELETED = "deleted"
+
 
 class FactPath(BaseModel):
     rel_path: str
     content_sha256: str | None = None
     git_commit: str | None = None
+
 
 class Fact(BaseModel):
     fact_id: str
@@ -330,21 +339,29 @@ class Fact(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class SearchHit(BaseModel):
-    ref: str                 # fact_id, chunk_id, or trace_id
+    ref: str  # fact_id, chunk_id, or trace_id
     ref_type: Literal["fact", "episode"]
-    summary: str             # fact summary, or first 200 chars of the chunk
+    summary: str  # fact summary, or first 200 chars of the chunk
     score: float
     kind: str | None = None  # fact kind, or None for episodes
-    stale: bool = False      # Section 7.6
+    stale: bool = False  # Section 7.6
     pinned: bool = False
     created_at: datetime
 
+
 class TraceRecord(BaseModel):
-    trace_id: str; project_id: str; session_id: str | None
-    tool_name: str; command: str | None
-    stdout: str; stderr: str; exit_code: int | None
-    line_count: int; char_count: int
+    trace_id: str
+    project_id: str
+    session_id: str | None
+    tool_name: str
+    command: str | None
+    stdout: str
+    stderr: str
+    exit_code: int | None
+    line_count: int
+    char_count: int
     created_at: datetime
 ```
 
@@ -356,18 +373,28 @@ Replace the two protocols in `storage/protocols.py` with one synchronous core an
 class MemoryStore(Protocol):
     # projects / sessions
     def upsert_project(self, info: ProjectInfo) -> None: ...
-    def upsert_session(self, session_id: str, project_id: str,
-                       transcript_path: str | None) -> SessionRow: ...
+    def upsert_session(
+        self, session_id: str, project_id: str, transcript_path: str | None
+    ) -> SessionRow: ...
     def advance_transcript_offset(self, session_id: str, new_offset: int) -> None: ...
     def increment_compactions(self, session_id: str) -> int: ...
 
     # facts
-    def create_fact(self, fact: Fact) -> CreateResult: ...          # handles dedup + supersede
-    def update_fact(self, fact_id: str, project_id: str, *, summary: str | None,
-                    body: str | None, kind: FactKind | None, actor: str,
-                    session_id: str | None) -> Fact: ...
-    def delete_fact(self, fact_id: str, project_id: str, actor: str,
-                    session_id: str | None) -> None: ...            # soft delete
+    def create_fact(self, fact: Fact) -> CreateResult: ...  # handles dedup + supersede
+    def update_fact(
+        self,
+        fact_id: str,
+        project_id: str,
+        *,
+        summary: str | None,
+        body: str | None,
+        kind: FactKind | None,
+        actor: str,
+        session_id: str | None,
+    ) -> Fact: ...
+    def delete_fact(
+        self, fact_id: str, project_id: str, actor: str, session_id: str | None
+    ) -> None: ...  # soft delete
     def set_pinned(self, fact_id: str, project_id: str, pinned: bool, actor: str) -> None: ...
     def get_fact(self, fact_id: str, project_id: str) -> Fact | None: ...
     def list_pinned(self, project_id: str) -> list[Fact]: ...
@@ -427,10 +454,13 @@ class EmbeddingModelSpec:
     query_prefix: str = ""
     document_prefix: str = ""
 
+
 MODELS = {
     "BAAI/bge-small-en-v1.5": EmbeddingModelSpec(
-        "BAAI/bge-small-en-v1.5", 384,
-        query_prefix="Represent this sentence for searching relevant passages: "),
+        "BAAI/bge-small-en-v1.5",
+        384,
+        query_prefix="Represent this sentence for searching relevant passages: ",
+    ),
 }
 ```
 
@@ -466,7 +496,7 @@ Exception: `record_fact` in the MCP server embeds the new fact before returning,
 class SearchRequest(BaseModel):
     project_id: str
     query: str
-    top_k: int = 5                      # max 20
+    top_k: int = 5  # max 20
     include_episodes: bool = True
     kinds: list[FactKind] | None = None
     include_superseded: bool = False

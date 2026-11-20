@@ -1,30 +1,28 @@
-"""Core models, RRF, governor, and pruner components."""
+"""Core models, RRF, staleness, and redaction components."""
 
-from mem_plane.core.governor import (
-    CACHE_BREAKPOINT,
-    assemble_prompt,
-    build_zone_1,
-    build_zone_2,
-    build_zone_3,
-    build_zone_4,
-    extract_zone_1_prefix,
+from __future__ import annotations
+
+from mem_plane.core.models import (
+    Fact,
+    FactKind,
+    FactPath,
+    FactStatus,
+    SearchHit,
+    TraceRecord,
 )
-from mem_plane.core.models import FactEntity, HydrationBundle, PromptZone, SurrogateHit
-from mem_plane.core.pruner import EphemeralToolPruner
-from mem_plane.core.rrf import reciprocal_rank_fusion
+from mem_plane.core.redact import redact_secrets
+from mem_plane.core.rrf import reciprocal_rank_fusion, weighted_rrf
+from mem_plane.core.staleness import check_fact_staleness
 
 __all__ = [
-    "CACHE_BREAKPOINT",
-    "EphemeralToolPruner",
-    "FactEntity",
-    "HydrationBundle",
-    "PromptZone",
-    "SurrogateHit",
-    "assemble_prompt",
-    "build_zone_1",
-    "build_zone_2",
-    "build_zone_3",
-    "build_zone_4",
-    "extract_zone_1_prefix",
+    "Fact",
+    "FactKind",
+    "FactPath",
+    "FactStatus",
+    "SearchHit",
+    "TraceRecord",
+    "check_fact_staleness",
     "reciprocal_rank_fusion",
+    "redact_secrets",
+    "weighted_rrf",
 ]

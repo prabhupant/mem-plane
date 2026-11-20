@@ -1,4 +1,4 @@
-"""Ephemeral tool pruner for compressing noisy execution and test outputs."""
+"""Ephemeral tool pruner for custom agent loops (Section 13)."""
 
 from __future__ import annotations
 

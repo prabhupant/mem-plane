@@ -1,13 +1,13 @@
 """Unit tests for Context Governor and KV-cache prefix invariance."""
 
-from mem_plane.core.governor import (
+from mem_plane.core.models import HydrationBundle, SurrogateHit
+from mem_plane.sdk.prompt_zones import (
     CACHE_BREAKPOINT,
     assemble_prompt,
     build_zone_1,
     build_zone_3,
     extract_zone_1_prefix,
 )
-from mem_plane.core.models import HydrationBundle, SurrogateHit
 
 
 def test_zone_1_prefix_byte_invariance_when_downstream_changes() -> None:

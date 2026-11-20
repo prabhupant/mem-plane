@@ -2,7 +2,7 @@
 
 import pytest
 
-from mem_plane.core.pruner import EphemeralToolPruner
+from mem_plane.sdk.pruner import EphemeralToolPruner
 from mem_plane.storage.sqlite.backend import SQLiteBackend
 
 
