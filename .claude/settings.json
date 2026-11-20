@@ -1,0 +1,83 @@
+{
+  "description": "mem-plane: long-lived memory and tool-output shortening",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mem-plane",
+            "args": [
+              "hook",
+              "session-start"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mem-plane",
+            "args": [
+              "hook",
+              "post-tool-use"
+            ],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mem-plane",
+            "args": [
+              "hook",
+              "stop"
+            ],
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto|manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mem-plane",
+            "args": [
+              "hook",
+              "pre-compact"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mem-plane",
+            "args": [
+              "hook",
+              "session-end"
+            ],
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
