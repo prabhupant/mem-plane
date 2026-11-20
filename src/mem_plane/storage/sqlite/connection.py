@@ -67,7 +67,7 @@ def get_sqlite_connector(database: str | Path | None = None) -> Callable[[], Any
     db_path = prepare_db_file(target)
 
     def connector() -> Any:
-        conn = _sqlite_module.connect(db_path)
+        conn = _sqlite_module.connect(db_path, check_same_thread=False)
         if hasattr(conn, "enable_load_extension"):
             conn.enable_load_extension(True)
             sqlite_vec.load(conn)

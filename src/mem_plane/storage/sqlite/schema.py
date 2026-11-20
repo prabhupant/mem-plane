@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sqlite3
 from datetime import UTC, datetime
 from typing import Any
+
+
+def compute_content_hash(summary: str, body: str) -> str:
+    """Normalize text (trim, collapse internal whitespace) and compute SHA-256."""
+    norm_summary = re.sub(r"\s+", " ", summary.strip())
+    norm_body = re.sub(r"\s+", " ", body.strip())
+    combined = f"{norm_summary}\n{norm_body}"
+    return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 
 
 def parse_semver(ver_str: str) -> tuple[int, int, int]:

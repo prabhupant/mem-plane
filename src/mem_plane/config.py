@@ -17,9 +17,13 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    storage_backend: Literal["sqlite", "production"] = Field(
+    storage_backend: Literal["sqlite", "production_experimental"] = Field(
         default="sqlite",
-        description="Active storage backend: 'sqlite' or 'production' (Postgres + OpenSearch)",
+        description="Active storage backend: 'sqlite' or 'production_experimental' (Postgres + OpenSearch)",
+    )
+    db_path: str = Field(
+        default="~/.mem-plane/memory.db",
+        description="Path to SQLite database file",
     )
     sqlite_db_path: str = Field(
         default=":memory:",
@@ -59,7 +63,7 @@ async def get_storage_and_index(
         await backend.initialize()
         return backend, backend
 
-    elif cfg.storage_backend == "production":
+    elif cfg.storage_backend == "production_experimental":
         from mem_plane.storage.production.opensearch import OpenSearchBackend
         from mem_plane.storage.production.postgres import PostgresBackend
 
