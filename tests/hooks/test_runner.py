@@ -7,6 +7,8 @@ import os
 import sys
 from unittest.mock import patch
 
+import pytest
+
 from mem_plane.hooks.runner import run_hook
 
 
@@ -55,3 +57,38 @@ def test_hook_runner_does_not_import_heavy_modules() -> None:
     )
     res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
     assert res.returncode == 0, f"Failed: {res.stderr}"
+
+
+def test_every_fixture_payload_runs_through_debug_runner(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import glob
+    import json
+    from pathlib import Path
+
+    fixtures_dir = Path(__file__).parent.parent / "fixtures" / "claude_code"
+    json_files = glob.glob(str(fixtures_dir / "*.json"))
+    assert len(json_files) >= 5, "Expected at least 5 fixture payloads"
+
+    for json_file in json_files:
+        with open(json_file, encoding="utf-8") as f:
+            content = f.read()
+
+        data = json.loads(content)
+        event_name = data.get("hook_event_name", "unknown")
+        # Map event_name from PascalCase to kebab-case
+        event_kebab = {
+            "SessionStart": "session-start",
+            "PostToolUse": "post-tool-use",
+            "Stop": "stop",
+            "PreCompact": "pre-compact",
+            "SessionEnd": "session-end",
+            "UserPromptSubmit": "user-prompt-submit",
+        }.get(event_name, "stop")
+
+        with patch("sys.stdin", io.StringIO(content)):
+            exit_code = run_hook(event_kebab)
+
+        captured = capsys.readouterr()
+        assert exit_code == 0, f"Failed for {json_file}"
+        assert captured.out == "", f"Stray stdout for {json_file}: {captured.out}"
