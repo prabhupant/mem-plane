@@ -51,7 +51,7 @@ The agent updates this table at the end of each session.
 | :- | :- | :- | :- |
 | M0 Fixtures and baseline | 8 / 8 | [x] | Gate passed; all 10 hook/session fixtures committed and verified |
 | M1 Storage version 1 | 16 / 16 | [x] | Gate passed; all storage, atomicity, concurrency, and migration tests pass |
-| M2 Embeddings, retrieval, tools | 0 / 19 | [ ] | |
+| M2 Embeddings, retrieval, tools | 19 / 19 | [x] | Gate passed; Recall@5: Fused 0.960 vs Kw 0.900, Vec 0.940; Superseded rate 0.000 |
 | M3 Tool-output shortening | 0 / 10 | [ ] | |
 | M4 Transcript archive | 0 / 11 | [ ] | |
 | M5 Session context | 0 / 7 | [ ] | |
@@ -146,51 +146,51 @@ Goal: a persistent, project-scoped, atomic store.
 
 Goal: search that actually works, and the new tool set.
 
-- [ ] **M2.1** `FastEmbedClient` with lazy loading, normalization, query prefix, model table. (§6.1)
-  - Commit:
-- [ ] **M2.2** `embed_query` and `embed_documents` added to the protocol; old methods kept as wrappers. (§6.1)
-  - Commit:
-- [ ] **M2.3** `build_embedding_client(settings)`: `fastembed`, `none`, `dummy`; dummy refused without `MEM_PLANE_ALLOW_DUMMY_EMBEDDINGS=1`; missing fastembed falls back to keyword only with one warning. (§6.2)
+- [x] **M2.1** `FastEmbedClient` with lazy loading, normalization, query prefix, model table. (§6.1)
+  - Commit: `73acd93`
+- [x] **M2.2** `embed_query` and `embed_documents` added to the protocol; old methods kept as wrappers. (§6.1)
+  - Commit: `73acd93`
+- [x] **M2.3** `build_embedding_client(settings)`: `fastembed`, `none`, `dummy`; dummy refused without `MEM_PLANE_ALLOW_DUMMY_EMBEDDINGS=1`; missing fastembed falls back to keyword only with one warning. (§6.2)
   - Verify: starting the server with `MEM_PLANE_EMBEDDING_PROVIDER=dummy` and no allow flag exits with a clear error.
-  - Commit:
-- [ ] **M2.4** `embed` and `harness` extras in `pyproject.toml`. (Appendix B)
-  - Commit:
-- [ ] **M2.5** Background embedder worker in the server. (§6.3)
+  - Commit: `73acd93`
+- [x] **M2.4** `embed` and `harness` extras in `pyproject.toml`. (Appendix B)
+  - Commit: `73acd93`
+- [x] **M2.5** Background embedder worker in the server. (§6.3)
   - Verify: insert a fact with `embedded_at` NULL, start the server, and within a few seconds `embedded_at` is set.
-  - Commit:
-- [ ] **M2.6** FTS query builder: sanitize, quote tokens, cap at 24, join with OR. (§7.2)
+  - Commit: `49cdb8f`
+- [x] **M2.6** FTS query builder: sanitize, quote tokens, cap at 24, join with OR. (§7.2)
   - Verify: tests for quotes, parentheses, `*`, empty query, `auth_jwt_v2`, `--no-cov`.
-  - Commit:
-- [ ] **M2.7** Fact and episode keyword search with `bm25` column weights and project and status filters. (§7.2)
-  - Commit:
-- [ ] **M2.8** Vector search with partition key, status filter, and the cosine distance cut-off. (§7.3)
-  - Commit:
-- [ ] **M2.9** `weighted_rrf` for N lists with deterministic ties; four-list fusion with configured weights. (§7.4)
-  - Commit:
-- [ ] **M2.10** Text output formatter: one line per hit, no scores, no current time, fixed last line. (§7.5)
+  - Commit: `38fdb39`
+- [x] **M2.7** Fact and episode keyword search with `bm25` column weights and project and status filters. (§7.2)
+  - Commit: `38fdb39`
+- [x] **M2.8** Vector search with partition key, status filter, and the cosine distance cut-off. (§7.3)
+  - Commit: `38fdb39`
+- [x] **M2.9** `weighted_rrf` for N lists with deterministic ties; four-list fusion with configured weights. (§7.4)
+  - Commit: `38fdb39`
+- [x] **M2.10** Text output formatter: one line per hit, no scores, no current time, fixed last line. (§7.5)
   - Verify: the same search twice produces byte-identical text.
-  - Commit:
-- [ ] **M2.11** Staleness check with 10-second hash cache and 5 MB skip. (§7.6)
-  - Commit:
-- [ ] **M2.12** Static tool text in `server/tool_text.py`. (§8.2)
-  - Commit:
-- [ ] **M2.13** Tool-text stability test with stored hash constant. (§15.1)
-  - Commit:
-- [ ] **M2.14** Tools: `search_memory`, `get_memory` (fact, chunk, trace with `grep`, `lines`, default truncation), `record_fact`, `update_memory`, `forget_memory`, `pin_memory`, `memory_status`. (§8.2)
-  - Commit:
-- [ ] **M2.15** `record_fact` similar-fact hint at cosine similarity 0.92 or above. (§8.2)
-  - Commit:
-- [ ] **M2.16** Tools never raise; errors return one `error:` line and are logged. (§8.2)
-  - Commit:
-- [ ] **M2.17** Server startup sequence, project fixed for process lifetime, no `project_id` parameter on any tool. (§8.1)
-  - Commit:
-- [ ] **M2.18** Old tools removed; `CHANGELOG.md` notes the break. (§8.3)
-  - Commit:
-- [ ] **M2.19** Retrieval evaluation set and `eval/retrieval/run.py`. (§15.3)
+  - Commit: `38fdb39`
+- [x] **M2.11** Staleness check with 10-second hash cache and 5 MB skip. (§7.6)
+  - Commit: `38fdb39`
+- [x] **M2.12** Static tool text in `server/tool_text.py`. (§8.2)
+  - Commit: `38fdb39`
+- [x] **M2.13** Tool-text stability test with stored hash constant. (§15.1)
+  - Commit: `38fdb39`
+- [x] **M2.14** Tools: `search_memory`, `get_memory` (fact, chunk, trace with `grep`, `lines`, default truncation), `record_fact`, `update_memory`, `forget_memory`, `pin_memory`, `memory_status`. (§8.2)
+  - Commit: `38fdb39`
+- [x] **M2.15** `record_fact` similar-fact hint at cosine similarity 0.92 or above. (§8.2)
+  - Commit: `38fdb39`
+- [x] **M2.16** Tools never raise; errors return one `error:` line and are logged. (§8.2)
+  - Commit: `38fdb39`
+- [x] **M2.17** Server startup sequence, project fixed for process lifetime, no `project_id` parameter on any tool. (§8.1)
+  - Commit: `38fdb39`
+- [x] **M2.18** Old tools removed; `CHANGELOG.md` notes the break. (§8.3)
+  - Commit: `38fdb39`
+- [x] **M2.19** Retrieval evaluation set and `eval/retrieval/run.py`. (§15.3)
   - Verify: report shows fused recall@5 at least 0.85, fused higher than keyword-only and vector-only, superseded rate 0.
-  - Commit:
+  - Commit: `38fdb39`
 
-**Gate M2:** [ ] Search and tool tests pass, and the evaluation report meets its targets. Paste the evaluation numbers into the Notes column.
+**Gate M2:** [x] Search and tool tests pass, and the evaluation report meets its targets. Paste the evaluation numbers into the Notes column.
 
 **What to check yourself:** run `mem-plane search "some decision you recorded"` in a real project and judge whether the results make sense.
 
@@ -382,6 +382,13 @@ Record every decision that differs from the spec, or fills a gap the spec left o
 ## Session log
 
 The agent adds one entry per working session, newest first.
+
+### 2026-11-20, session 3
+Tasks completed: M2.1 through M2.19 (Milestone 2 complete)
+Tasks in progress: None (Ready for M3)
+Blocked: none
+Test status: 102 passed, 0 failed; mypy clean (64 files); ruff clean (64 files)
+Notes: Completed Milestone 2 end-to-end. Implemented FastEmbedClient lazy loading with unit normalization and BGE query prefix, embed and harness extras, background embedder worker, FTS5 query builder, 4-list weighted RRF search (facts kw/vec + episodes kw/vec), deterministic plain-text result formatter, 10s mtime/size cached staleness checker, static MCP tool text with hash stability test, MemPlaneService with 7 tools (search_memory, get_memory, record_fact, update_memory, forget_memory, pin_memory, memory_status), similar-fact hint at cosine similarity >= 0.92, trace filtering (grep/lines/truncation), fixed project lifetime scoping, and removed legacy v0 tools with CHANGELOG.md. Built retrieval eval suite (150 facts, 150 queries) with eval/retrieval/run.py meeting all targets (Fused Recall@5 = 0.960 >= 0.85; Fused Recall@5 > Keyword (0.900) & Vector (0.940); Superseded rate = 0.000). Gate M2 fully passed.
 
 ### 2026-11-20, session 2
 Tasks completed: M1.1 through M1.16 (Milestone 1 complete)
