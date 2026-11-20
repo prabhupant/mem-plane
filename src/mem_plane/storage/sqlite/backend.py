@@ -8,7 +8,6 @@ from types import TracebackType
 from typing import Self
 
 import aiosqlite
-import sqlite_vec
 
 from mem_plane.core.models import FactEntity, HydrationBundle, SurrogateHit
 from mem_plane.core.rrf import reciprocal_rank_fusion
@@ -271,6 +270,8 @@ class SQLiteBackend(MetadataStorage, SearchIndex):
         )
 
         # Update vec0 virtual table
+        import sqlite_vec
+
         serialized_vector = sqlite_vec.serialize_float32(vector)
         await conn.execute(
             "INSERT OR REPLACE INTO facts_vec (fact_id, embedding) VALUES (?, ?);",
@@ -319,13 +320,15 @@ class SQLiteBackend(MetadataStorage, SearchIndex):
                 ) as cursor:
                     rows = await cursor.fetchall()
                     lexical_ranks = [str(r[0]) for r in rows]
-            except (aiosqlite.Error, sqlite_vec.Error, RuntimeError):
+            except (aiosqlite.Error, RuntimeError):
                 lexical_ranks = []
 
         # 2. Dense retrieval via sqlite-vec
         dense_ranks: list[str] = []
         if query_vector:
             try:
+                import sqlite_vec
+
                 serialized_query = sqlite_vec.serialize_float32(query_vector)
                 async with conn.execute(
                     """
@@ -336,7 +339,7 @@ class SQLiteBackend(MetadataStorage, SearchIndex):
                 ) as cursor:
                     rows = await cursor.fetchall()
                     dense_ranks = [str(r[0]) for r in rows]
-            except (aiosqlite.Error, sqlite_vec.Error, RuntimeError):
+            except (aiosqlite.Error, RuntimeError):
                 dense_ranks = []
 
         # 3. Reciprocal Rank Fusion

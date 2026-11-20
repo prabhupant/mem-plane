@@ -1,11 +1,15 @@
-"""Minimal hook runner for Claude Code hooks."""
+"""Universal entry point for Claude Code hook handlers (Section 9.1)."""
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import traceback
 from datetime import UTC, datetime
+from typing import Any
+
+from mem_plane.config import Settings
 
 
 def _get_log_dir() -> str:
@@ -44,10 +48,13 @@ def _save_debug_payload(event: str, raw_payload: str) -> None:
 
 
 def run_hook(event: str) -> int:
-    """Entry point for executing a Claude Code hook event.
+    """Execute a Claude Code hook handler.
 
-    Never raises, never blocks, and prints nothing unless a specific
-    handler produces valid JSON output. Always returns 0.
+    Guarantees:
+    - Never raises (wrapped in try/except BaseException)
+    - Always exits 0
+    - Prints exactly one JSON object or nothing
+    - Logs errors only to ~/.mem-plane/logs/hooks.log
     """
     try:
         raw_payload = sys.stdin.read()
@@ -55,9 +62,37 @@ def run_hook(event: str) -> int:
         if os.environ.get("MEM_PLANE_HOOK_DEBUG") == "1":
             _save_debug_payload(event, raw_payload)
 
-        # In M0, the runner is in debug capture mode only.
-        # Specific event handlers are wired up in M3, M4, M5, M7.
+        if not raw_payload.strip():
+            return 0
+
+        try:
+            data = json.loads(raw_payload)
+            if not isinstance(data, dict):
+                return 0
+        except (json.JSONDecodeError, ValueError, TypeError):
+            # Malformed JSON payload; exit 0 with no output
+            return 0
+
+        settings = Settings()
+        normalized_event = event.lower().replace("-", "").replace("_", "")
+
+        result: dict[str, Any] | None = None
+
+        if normalized_event in ("posttooluse", "posttool"):
+            from mem_plane.hooks.inputs import PostToolUseInput
+            from mem_plane.hooks.post_tool_use import handle_post_tool_use
+
+            payload_obj = PostToolUseInput.model_validate(data)
+            result = handle_post_tool_use(payload_obj, settings)
+
+        # Other events wired in M4, M5, M7
+
+        if result is not None:
+            sys.stdout.write(json.dumps(result))
+            sys.stdout.flush()
+
         return 0
+
     except BaseException as exc:  # noqa: BLE001
         _log_error(f"Unhandled error in hook {event}: {exc}\n{traceback.format_exc()}")
         return 0

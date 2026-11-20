@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 import aiosqlite
-import sqlite_vec
 
 DEFAULT_DB_PATH = Path("~/.mem-plane/memory.db")
 
@@ -57,8 +56,23 @@ def prepare_db_file(database: str | Path) -> str:
     return str(db_path)
 
 
-def get_sqlite_connector(database: str | Path | None = None) -> Callable[[], Any]:
-    """Create a synchronous connector function that enables extensions and loads sqlite-vec."""
+def load_vec_extension(conn: Any) -> None:
+    """Load sqlite-vec extension into connection."""
+    import sqlite_vec
+
+    if hasattr(conn, "enable_load_extension"):
+        conn.enable_load_extension(True)
+        sqlite_vec.load(conn)
+        conn.enable_load_extension(False)
+    else:
+        sqlite_vec.load(conn)
+
+
+def get_sqlite_connector(
+    database: str | Path | None = None,
+    load_vec: bool = True,
+) -> Callable[[], Any]:
+    """Create a synchronous connector function that optionally enables sqlite-vec."""
     target = (
         database
         if database is not None
@@ -68,18 +82,17 @@ def get_sqlite_connector(database: str | Path | None = None) -> Callable[[], Any
 
     def connector() -> Any:
         conn = _sqlite_module.connect(db_path, check_same_thread=False)
-        if hasattr(conn, "enable_load_extension"):
-            conn.enable_load_extension(True)
-            sqlite_vec.load(conn)
-            conn.enable_load_extension(False)
-        else:
-            sqlite_vec.load(conn)
+        if load_vec:
+            load_vec_extension(conn)
         return conn
 
     return connector
 
 
-def create_sync_connection(database: str | Path | None = None) -> Any:
+def create_sync_connection(
+    database: str | Path | None = None,
+    load_vec: bool = True,
+) -> Any:
     """Create and initialize a synchronous SQLite connection with pragmas."""
     target = (
         database
@@ -87,7 +100,7 @@ def create_sync_connection(database: str | Path | None = None) -> Any:
         else os.environ.get("MEM_PLANE_DB_PATH", str(DEFAULT_DB_PATH))
     )
     db_path = prepare_db_file(target)
-    connector = get_sqlite_connector(db_path)
+    connector = get_sqlite_connector(db_path, load_vec=load_vec)
     conn = connector()
 
     conn.execute("PRAGMA busy_timeout=5000;")

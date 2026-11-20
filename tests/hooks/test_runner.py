@@ -59,6 +59,24 @@ def test_hook_runner_does_not_import_heavy_modules() -> None:
     assert res.returncode == 0, f"Failed: {res.stderr}"
 
 
+def test_hook_execution_does_not_import_heavy_modules() -> None:
+    import subprocess
+
+    code = (
+        "import io, sys\n"
+        "from unittest.mock import patch\n"
+        "from mem_plane.hooks.runner import run_hook\n"
+        'payload = \'{"session_id":"s1","cwd":".","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"echo hi"},"tool_response":{"stdout":"hi","stderr":""}}\'\n'
+        "with patch('sys.stdin', io.StringIO(payload)):\n"
+        "    run_hook('post-tool-use')\n"
+        "assert 'fastembed' not in sys.modules, 'fastembed imported during hook execution!'\n"
+        "assert 'numpy' not in sys.modules, 'numpy imported during hook execution!'\n"
+        "assert 'mcp' not in sys.modules, 'mcp imported during hook execution!'\n"
+    )
+    res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"Failed: {res.stderr}"
+
+
 def test_every_fixture_payload_runs_through_debug_runner(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -91,4 +109,8 @@ def test_every_fixture_payload_runs_through_debug_runner(
 
         captured = capsys.readouterr()
         assert exit_code == 0, f"Failed for {json_file}"
-        assert captured.out == "", f"Stray stdout for {json_file}: {captured.out}"
+        if captured.out:
+            # Must be valid single JSON object
+            parsed = json.loads(captured.out)
+            assert isinstance(parsed, dict)
+            assert "hookSpecificOutput" in parsed

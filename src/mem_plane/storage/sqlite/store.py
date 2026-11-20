@@ -46,22 +46,35 @@ class SQLiteStore(MemoryStore):
         dimension: int = 384,
         model_name: str = "BAAI/bge-small-en-v1.5",
         settings: Settings | None = None,
+        load_vec: bool = True,
     ) -> None:
         from mem_plane.config import Settings as ConfigSettings
 
         self.settings = settings or ConfigSettings()
-        self.conn: Any = create_sync_connection(database)
+        self.conn: Any = create_sync_connection(database, load_vec=load_vec)
         self.dimension = dimension
         self.model_name = model_name
-        self.partition_keys_supported = supports_vec_partition_keys(self.conn)
-        # Attempt v0 migration if applicable
-        migrate_v0_to_v1(self.conn, dimension=dimension, model_name=model_name)
-        init_schema(
-            self.conn,
-            dimension=dimension,
-            model_name=model_name,
-            force_partition_keys=self.partition_keys_supported,
-        )
+        self.load_vec = load_vec
+        if load_vec:
+            self.partition_keys_supported = supports_vec_partition_keys(self.conn)
+            # Attempt v0 migration if applicable
+            migrate_v0_to_v1(self.conn, dimension=dimension, model_name=model_name)
+            init_schema(
+                self.conn,
+                dimension=dimension,
+                model_name=model_name,
+                force_partition_keys=self.partition_keys_supported,
+            )
+        else:
+            self.partition_keys_supported = False
+            # Still ensure relational tables and FTS tables are initialized
+            init_schema(
+                self.conn,
+                dimension=dimension,
+                model_name=model_name,
+                force_partition_keys=False,
+                include_vec=False,
+            )
 
     def close(self) -> None:
         if self.conn:

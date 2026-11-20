@@ -24,43 +24,43 @@ def create_parser() -> argparse.ArgumentParser:
         help="Hook event name (e.g. session-start, post-tool-use, stop, pre-compact, session-end, user-prompt-submit)",
     )
 
-    # serve command (stub for M0, implemented in M2/M6)
+    # serve command
     subparsers.add_parser("serve", help="Run MCP server over stdio")
 
-    # status command (stub for M0)
+    # status command
     status_parser = subparsers.add_parser("status", help="Print memory status")
     status_parser.add_argument("--project", help="Project path or ID")
 
-    # search command (stub for M0)
+    # search command
     search_parser = subparsers.add_parser("search", help="Search memory")
     search_parser.add_argument("query", help="Query text")
     search_parser.add_argument("--project", help="Project path or ID")
 
-    # embed-pending command (stub for M0)
+    # embed-pending command
     subparsers.add_parser("embed-pending", help="Embed all pending records")
 
-    # reindex command (stub for M0)
+    # reindex command (stub)
     reindex_parser = subparsers.add_parser("reindex", help="Rebuild vector indexes")
     reindex_parser.add_argument("--model", help="Embedding model name")
 
-    # gc command (stub for M0)
+    # gc command
     subparsers.add_parser("gc", help="Purge expired traces and optimize database")
 
-    # export command (stub for M0)
+    # export command (stub)
     export_parser = subparsers.add_parser("export", help="Export facts and history")
     export_parser.add_argument("--project", help="Project path or ID")
 
-    # import command (stub for M0)
-    import_parser = subparsers.add_parser("import", help="Import facts from JSON Lines")
+    # import command (stub)
+    import_parser = subparsers.add_parser("import", help="Import facts from JSON Lines file")
     import_parser.add_argument("file", help="JSON Lines file to import")
 
-    # doctor command (stub for M0)
+    # doctor command (stub)
     doctor_parser = subparsers.add_parser("doctor", help="Check installation and configuration")
     doctor_parser.add_argument(
         "--print-hooks", action="store_true", help="Print hook configuration"
     )
 
-    # bench command (stub for M0)
+    # bench command
     bench_parser = subparsers.add_parser("bench", help="Generate token report from transcripts")
     bench_parser.add_argument("transcripts", nargs="+", help="Transcript file path(s)")
 
@@ -98,6 +98,25 @@ def main(argv: Sequence[str] | None = None) -> int:
                     break
                 total += count
             print(f"Embedded {total} pending items.")
+            return 0
+        finally:
+            store.close()
+
+    if args.command == "gc":
+        from mem_plane.config import Settings
+        from mem_plane.storage.sqlite.store import SQLiteStore
+
+        settings = Settings()
+        store = SQLiteStore(
+            database=settings.db_path,
+            dimension=settings.embedding_dimension,
+            settings=settings,
+        )
+        try:
+            purged = store.purge_expired_traces()
+            store.conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            store.conn.execute("PRAGMA optimize;")
+            print(f"Purged {purged} expired traces. Checkpoint and optimization complete.")
             return 0
         finally:
             store.close()
@@ -178,7 +197,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         finally:
             store.close()
 
-    return 0
+    print(f"Command '{args.command}' is not implemented yet.", file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

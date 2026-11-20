@@ -39,7 +39,11 @@ def supports_vec_partition_keys(conn: Any) -> bool:
         return False
 
 
-def get_schema_v1_ddl(dimension: int = 384, partition_keys: bool = True) -> list[str]:
+def get_schema_v1_ddl(
+    dimension: int = 384,
+    partition_keys: bool = True,
+    include_vec: bool = True,
+) -> list[str]:
     """Return SQL DDL statements for schema version 1."""
     ddl = [
         # ---------- projects ----------
@@ -122,26 +126,27 @@ def get_schema_v1_ddl(dimension: int = 384, partition_keys: bool = True) -> list
     ]
 
     # ---------- facts_vec ----------
-    if partition_keys:
-        ddl.append(
-            f"""
-            CREATE VIRTUAL TABLE IF NOT EXISTS facts_vec USING vec0(
-                fact_id TEXT PRIMARY KEY,
-                project_id TEXT PARTITION KEY,
-                status TEXT,
-                embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
-            );
-            """
-        )
-    else:
-        ddl.append(
-            f"""
-            CREATE VIRTUAL TABLE IF NOT EXISTS facts_vec USING vec0(
-                fact_id TEXT PRIMARY KEY,
-                embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
-            );
-            """
-        )
+    if include_vec:
+        if partition_keys:
+            ddl.append(
+                f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS facts_vec USING vec0(
+                    fact_id TEXT PRIMARY KEY,
+                    project_id TEXT PARTITION KEY,
+                    status TEXT,
+                    embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
+                );
+                """
+            )
+        else:
+            ddl.append(
+                f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS facts_vec USING vec0(
+                    fact_id TEXT PRIMARY KEY,
+                    embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
+                );
+                """
+            )
 
     # ---------- sessions and episodes ----------
     ddl.extend(
@@ -189,25 +194,26 @@ def get_schema_v1_ddl(dimension: int = 384, partition_keys: bool = True) -> list
     )
 
     # ---------- episode_vec ----------
-    if partition_keys:
-        ddl.append(
-            f"""
-            CREATE VIRTUAL TABLE IF NOT EXISTS episode_vec USING vec0(
-                chunk_id TEXT PRIMARY KEY,
-                project_id TEXT PARTITION KEY,
-                embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
-            );
-            """
-        )
-    else:
-        ddl.append(
-            f"""
-            CREATE VIRTUAL TABLE IF NOT EXISTS episode_vec USING vec0(
-                chunk_id TEXT PRIMARY KEY,
-                embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
-            );
-            """
-        )
+    if include_vec:
+        if partition_keys:
+            ddl.append(
+                f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS episode_vec USING vec0(
+                    chunk_id TEXT PRIMARY KEY,
+                    project_id TEXT PARTITION KEY,
+                    embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
+                );
+                """
+            )
+        else:
+            ddl.append(
+                f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS episode_vec USING vec0(
+                    chunk_id TEXT PRIMARY KEY,
+                    embedding FLOAT[{dimension}] DISTANCE_METRIC=cosine
+                );
+                """
+            )
 
     # ---------- traces and metadata ----------
     ddl.extend(
@@ -247,6 +253,7 @@ def init_schema(
     dimension: int = 384,
     model_name: str = "BAAI/bge-small-en-v1.5",
     force_partition_keys: bool | None = None,
+    include_vec: bool = True,
 ) -> None:
     """Initialize schema version 1 and populate metadata."""
     if force_partition_keys is not None:
@@ -254,7 +261,11 @@ def init_schema(
     else:
         partition_keys = supports_vec_partition_keys(conn)
 
-    ddl_statements = get_schema_v1_ddl(dimension=dimension, partition_keys=partition_keys)
+    ddl_statements = get_schema_v1_ddl(
+        dimension=dimension,
+        partition_keys=partition_keys,
+        include_vec=include_vec,
+    )
 
     for stmt in ddl_statements:
         conn.execute(stmt)
