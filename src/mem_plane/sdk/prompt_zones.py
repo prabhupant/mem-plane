@@ -100,3 +100,28 @@ def extract_zone_1_prefix(assembled_prompt: str) -> str:
     if CACHE_BREAKPOINT in assembled_prompt:
         return assembled_prompt.split(CACHE_BREAKPOINT)[0]
     return assembled_prompt
+
+
+class PromptZoneGovernor:
+    """Convenience class for managing prompt zones and cache breakpoints."""
+
+    def build_zone_1(self, static_system_prompt: str, hydration: HydrationBundle) -> str:
+        return build_zone_1(static_system_prompt, hydration)
+
+    def build_zone_2(self) -> str:
+        return build_zone_2()
+
+    def build_zone_3(self, hits: Sequence[SurrogateHit]) -> str:
+        return build_zone_3(hits)
+
+    def build_zone_4(self, turns: Sequence[str]) -> str:
+        return build_zone_4(turns)
+
+    def assemble(
+        self,
+        static_system_prompt: str,
+        hydration: HydrationBundle,
+        surrogates: Sequence[SurrogateHit],
+        turns: Sequence[str],
+    ) -> str:
+        return assemble_prompt(static_system_prompt, hydration, surrogates, turns)

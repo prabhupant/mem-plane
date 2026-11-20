@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from mem_plane.sdk.prompt_zones import (
     CACHE_BREAKPOINT,
+    PromptZoneGovernor,
     assemble_prompt,
     build_zone_1,
     build_zone_2,
@@ -16,6 +17,7 @@ from mem_plane.sdk.pruner import EphemeralToolPruner
 __all__ = [
     "CACHE_BREAKPOINT",
     "EphemeralToolPruner",
+    "PromptZoneGovernor",
     "assemble_prompt",
     "build_zone_1",
     "build_zone_2",

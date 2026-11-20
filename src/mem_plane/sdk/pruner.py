@@ -73,3 +73,11 @@ class EphemeralToolPruner:
 
         preview = self.format_preview(raw_output, assigned_trace_id)
         return preview, assigned_trace_id
+
+    def prune(self, raw_output: str, trace_id: str | None = None) -> tuple[str, str | None]:
+        """Synchronously check and compress output if exceeding thresholds."""
+        if not self.should_prune(raw_output):
+            return raw_output, None
+        assigned_trace_id = trace_id or f"t_{uuid.uuid4().hex[:10]}"
+        preview = self.format_preview(raw_output, assigned_trace_id)
+        return preview, assigned_trace_id

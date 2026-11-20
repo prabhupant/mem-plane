@@ -113,6 +113,13 @@ def run_hook(event: str) -> int:
             start_payload = SessionStartInput.model_validate(data)
             result = handle_session_start(start_payload, settings)
 
+        elif normalized_event in ("userpromptsubmit", "promptsubmit", "userprompt"):
+            from mem_plane.hooks.inputs import UserPromptSubmitInput
+            from mem_plane.hooks.user_prompt_submit import handle_user_prompt_submit
+
+            user_prompt_payload = UserPromptSubmitInput.model_validate(data)
+            result = handle_user_prompt_submit(user_prompt_payload, settings)
+
         if result is not None:
             sys.stdout.write(json.dumps(result))
             sys.stdout.flush()

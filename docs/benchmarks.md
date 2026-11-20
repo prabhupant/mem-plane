@@ -59,3 +59,23 @@ After the first context compaction in each run, the model was queried with 5 fix
 5. *Which tool command is preferred for running tests?* (Expected: `make test` / `python -m unittest`)
 
 Without mem-plane, context compaction summarized away numerical constants and specific minor rules, dropping baseline recall to **45.0%**. With mem-plane, the `SessionStart` memory index re-injected pinned and session facts, achieving **97.0%** recall.
+
+---
+
+## Auto-Recall Tuning (`AUTO_RECALL_MIN_SCORE`, §9.8, §15.4)
+
+When `MEM_PLANE_AUTO_RECALL=1`, the `UserPromptSubmit` hook executes an in-process BM25 keyword query against `facts_fts` on incoming prompts, filtering candidate matches by score to prevent context pollution.
+
+### Score Distribution on Evaluation Set (150 Queries)
+Using the empirical retrieval evaluation dataset (`eval/retrieval/`), `-bm25(facts_fts, 0.0, 0.0, 2.0, 1.0)` scores for true matches exhibited the following distribution:
+- **10th percentile:** 5.84
+- **20th percentile:** 6.11
+- **30th percentile:** 6.24
+- **Median (50th percentile):** 9.04
+- **75th percentile:** 18.21
+
+### Tuned Threshold Selection
+Per §9.8, the minimum threshold was aligned to the 30th percentile of true match scores:
+- **`MEM_PLANE_AUTO_RECALL_MIN_SCORE` = `6.2`**
+
+This ensures that weak token overlaps (< 6.2) are dropped with zero context injection, while high-confidence lexical prompt associations (>= 6.2) trigger concise `< 800` character memory hints appended to dialogue context.

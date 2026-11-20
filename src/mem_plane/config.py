@@ -125,9 +125,21 @@ class Settings(BaseSettings):
         default=False,
         description="Enable automatic recall on prompt submit",
     )
+    auto_recall_min_score: float = Field(
+        default=6.2,
+        description="Minimum BM25 score (-bm25) for auto recall hits",
+    )
     extractor: Literal["off", "anthropic"] = Field(
         default="off",
         description="Fact extractor mode",
+    )
+    extractor_model: str = Field(
+        default="claude-3-5-haiku-latest",
+        description="Model to use for background fact extraction",
+    )
+    anthropic_api_key: str | None = Field(
+        default=None,
+        description="Anthropic API key for background fact extractor",
     )
     redact: bool = Field(
         default=True,
