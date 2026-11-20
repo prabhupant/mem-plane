@@ -1,8 +1,12 @@
 """Ephemeral tool pruner for compressing noisy execution and test outputs."""
 
-import uuid
+from __future__ import annotations
 
-from mem_plane.storage.protocols import MetadataStorage
+import uuid
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mem_plane.storage.protocols import MetadataStorage
 
 
 class EphemeralToolPruner:
