@@ -20,7 +20,12 @@ from typing import Any
 
 from mem_plane.config import Settings
 from mem_plane.core.models import Fact, FactKind, FactStatus
-from mem_plane.pipeline.embeddings import DummyEmbeddingClient, FastEmbedClient
+from mem_plane.pipeline.embeddings import (
+    DummyEmbeddingClient,
+    EmbeddingClient,
+    FastEmbedClient,
+    OpenAIEmbeddingClient,
+)
 from mem_plane.storage.protocols import SearchRequest
 from mem_plane.storage.sqlite.store import SQLiteStore
 
@@ -105,18 +110,30 @@ async def run_evaluation() -> int:
 
     superseded_ids = {f["fact_id"] for f in facts if f.get("status") == "superseded"}
 
-    # Use FastEmbedClient if available, otherwise DummyEmbeddingClient with warning
-    try:
-        import fastembed  # noqa: F401
+    # Prefer OpenAI embeddings, fallback to FastEmbed or Dummy
+    client: EmbeddingClient
+    if os.environ.get("OPENAI_API_KEY"):
+        try:
+            client = OpenAIEmbeddingClient(model_name="text-embedding-3-small", dimension=384)
+            print("Using OpenAIEmbeddingClient with model text-embedding-3-small (384 dimensions).")
+        except (ImportError, RuntimeError, OSError) as e:
+            print(f"Warning: Failed to initialize OpenAIEmbeddingClient ({e}). Falling back.")
+            client = None  # type: ignore[assignment]
+    else:
+        client = None  # type: ignore[assignment]
 
-        client: FastEmbedClient | DummyEmbeddingClient = FastEmbedClient(
-            model_name="BAAI/bge-small-en-v1.5"
-        )
-        print("Using FastEmbedClient with model BAAI/bge-small-en-v1.5.")
-    except ImportError:
-        os.environ["MEM_PLANE_ALLOW_DUMMY_EMBEDDINGS"] = "1"
-        client = DummyEmbeddingClient(dimension=384)
-        print("Warning: fastembed not installed. Using DummyEmbeddingClient.")
+    if client is None:
+        try:
+            import fastembed  # noqa: F401
+
+            client = FastEmbedClient(model_name="BAAI/bge-small-en-v1.5")
+            print("Using FastEmbedClient with model BAAI/bge-small-en-v1.5.")
+        except ImportError:
+            os.environ["MEM_PLANE_ALLOW_DUMMY_EMBEDDINGS"] = "1"
+            client = DummyEmbeddingClient(dimension=384)
+            print(
+                "Warning: Neither OPENAI_API_KEY nor fastembed available. Using DummyEmbeddingClient."
+            )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         db_path = Path(tmp_dir) / "eval.db"
@@ -151,11 +168,13 @@ async def run_evaluation() -> int:
             print("Pre-computing query vectors...")
             t1 = time.time()
             query_texts = [q["query"] for q in queries]
-            # Embed queries with embed_query prefix
             query_vectors: list[list[float]] = []
-            for qt in query_texts:
-                qv = await client.embed_query(qt)
-                query_vectors.append(qv)
+            if isinstance(client, OpenAIEmbeddingClient):
+                query_vectors = await client.embed_documents(query_texts)
+            else:
+                for qt in query_texts:
+                    qv = await client.embed_query(qt)
+                    query_vectors.append(qv)
             print(f"Computed {len(queries)} query vectors in {time.time() - t1:.2f}s.")
 
             # Evaluation metrics

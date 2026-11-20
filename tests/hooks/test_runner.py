@@ -51,6 +51,7 @@ def test_hook_runner_does_not_import_heavy_modules() -> None:
 
     code = (
         "import sys, mem_plane.hooks.runner; "
+        "assert 'openai' not in sys.modules, 'openai imported!'; "
         "assert 'fastembed' not in sys.modules, 'fastembed imported!'; "
         "assert 'numpy' not in sys.modules, 'numpy imported!'; "
         "assert 'mcp' not in sys.modules, 'mcp imported!'"
@@ -69,6 +70,7 @@ def test_hook_execution_does_not_import_heavy_modules() -> None:
         'payload = \'{"session_id":"s1","cwd":".","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"echo hi"},"tool_response":{"stdout":"hi","stderr":""}}\'\n'
         "with patch('sys.stdin', io.StringIO(payload)):\n"
         "    run_hook('post-tool-use')\n"
+        "assert 'openai' not in sys.modules, 'openai imported during hook execution!'\n"
         "assert 'fastembed' not in sys.modules, 'fastembed imported during hook execution!'\n"
         "assert 'numpy' not in sys.modules, 'numpy imported during hook execution!'\n"
         "assert 'mcp' not in sys.modules, 'mcp imported during hook execution!'\n"

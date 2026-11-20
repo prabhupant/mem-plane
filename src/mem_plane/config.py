@@ -33,13 +33,21 @@ class Settings(BaseSettings):
         default=None,
         description="Forced project ID override",
     )
-    embedding_provider: Literal["fastembed", "none", "dummy"] = Field(
-        default="fastembed",
-        description="Active embedding provider: 'fastembed', 'none', or 'dummy'",
+    embedding_provider: Literal["openai", "fastembed", "none", "dummy"] = Field(
+        default="openai",
+        description="Active embedding provider: 'openai', 'fastembed', 'none', or 'dummy'",
     )
     embedding_model: str = Field(
-        default="BAAI/bge-small-en-v1.5",
+        default="text-embedding-3-small",
         description="Dense vector embedding model name",
+    )
+    openai_api_key: str | None = Field(
+        default=None,
+        description="OpenAI API key override (falls back to OPENAI_API_KEY env var)",
+    )
+    openai_base_url: str | None = Field(
+        default=None,
+        description="OpenAI base URL override (falls back to OPENAI_BASE_URL env var)",
     )
     allow_dummy_embeddings: bool = Field(
         default=False,

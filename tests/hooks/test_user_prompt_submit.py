@@ -184,6 +184,7 @@ def test_user_prompt_submit_does_not_import_heavy_modules() -> None:
         'payload = \'{"session_id":"s1","cwd":".","prompt":"test prompt"}\'\n'
         "with patch('sys.stdin', io.StringIO(payload)):\n"
         "    run_hook('user-prompt-submit')\n"
+        "assert 'openai' not in sys.modules, 'openai imported during user-prompt-submit!'\n"
         "assert 'fastembed' not in sys.modules, 'fastembed imported during user-prompt-submit!'\n"
         "assert 'numpy' not in sys.modules, 'numpy imported during user-prompt-submit!'\n"
         "assert 'mcp' not in sys.modules, 'mcp imported during user-prompt-submit!'\n"

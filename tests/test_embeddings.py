@@ -1,7 +1,8 @@
-"""Unit tests for DummyEmbeddingClient, FastEmbedClient, and build_embedding_client."""
+"""Unit tests for DummyEmbeddingClient, FastEmbedClient, OpenAIEmbeddingClient, and build_embedding_client."""
 
 import math
-from unittest.mock import patch
+import os
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -9,6 +10,7 @@ from mem_plane.config import Settings
 from mem_plane.pipeline.embeddings import (
     DummyEmbeddingClient,
     FastEmbedClient,
+    OpenAIEmbeddingClient,
     build_embedding_client,
 )
 
@@ -115,3 +117,132 @@ async def test_fastembed_client_live() -> None:
         assert len(doc_vec) == 384
         dnorm = math.sqrt(sum(x * x for x in doc_vec))
         assert pytest.approx(dnorm, rel=1e-4) == 1.0
+
+
+@pytest.mark.asyncio
+async def test_openai_embedding_client_mocked() -> None:
+    fake_item1 = MagicMock()
+    fake_item1.embedding = [3.0, 4.0]
+    fake_item1.index = 0
+
+    fake_item2 = MagicMock()
+    fake_item2.embedding = [1.0, 0.0]
+    fake_item2.index = 1
+
+    fake_resp = MagicMock()
+    fake_resp.data = [fake_item2, fake_item1]  # test out-of-order sorting
+
+    mock_openai_client = MagicMock()
+    mock_openai_client.embeddings.create = AsyncMock(return_value=fake_resp)
+
+    client = OpenAIEmbeddingClient(
+        model_name="text-embedding-3-small",
+        dimension=384,
+        api_key="test-key",
+    )
+    client._client = mock_openai_client
+
+    assert client.dimension == 384
+
+    # Test embed_documents
+    docs = await client.embed_documents(["doc1", "doc2"])
+    assert len(docs) == 2
+    assert docs[0] == [0.6, 0.8]  # normalized [3.0, 4.0]
+    assert docs[1] == [1.0, 0.0]
+
+    mock_openai_client.embeddings.create.assert_called_once_with(
+        model="text-embedding-3-small",
+        input=["doc1", "doc2"],
+        dimensions=384,
+    )
+
+    # Test empty documents
+    assert await client.embed_documents([]) == []
+
+    # Test embed_query and aliases
+    mock_single_resp = MagicMock()
+    mock_item = MagicMock()
+    mock_item.embedding = [0.0, 5.0]
+    mock_item.index = 0
+    mock_single_resp.data = [mock_item]
+    mock_openai_client.embeddings.create = AsyncMock(return_value=mock_single_resp)
+
+    q_vec = await client.embed_query("query")
+    assert q_vec == [0.0, 1.0]
+
+    alias_single = await client.embed_text("query")
+    assert alias_single == [0.0, 1.0]
+
+    alias_batch = await client.embed_batch(["query"])
+    assert alias_batch == [[0.0, 1.0]]
+
+
+@pytest.mark.asyncio
+async def test_openai_embedding_client_ada_no_dimensions() -> None:
+    fake_item = MagicMock()
+    fake_item.embedding = [1.0] * 1536
+    fake_item.index = 0
+    fake_resp = MagicMock()
+    fake_resp.data = [fake_item]
+
+    mock_openai_client = MagicMock()
+    mock_openai_client.embeddings.create = AsyncMock(return_value=fake_resp)
+
+    client = OpenAIEmbeddingClient(
+        model_name="text-embedding-ada-002",
+        dimension=1536,
+        api_key="test-key",
+    )
+    client._client = mock_openai_client
+
+    await client.embed_documents(["ada test"])
+    mock_openai_client.embeddings.create.assert_called_once_with(
+        model="text-embedding-ada-002",
+        input=["ada test"],
+    )
+
+
+def test_build_embedding_client_openai_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    settings = Settings(embedding_provider="openai", openai_api_key=None)
+    client = build_embedding_client(settings)
+    assert client is None
+
+
+def test_build_embedding_client_openai_missing_package() -> None:
+    settings = Settings(embedding_provider="openai", openai_api_key="sk-test")
+    with patch.dict("sys.modules", {"openai": None}):
+        client = build_embedding_client(settings)
+        assert client is None
+
+
+def test_build_embedding_client_openai_configured() -> None:
+    settings = Settings(
+        embedding_provider="openai",
+        openai_api_key="sk-test",
+        embedding_dimension=384,
+    )
+    client = build_embedding_client(settings)
+    assert isinstance(client, OpenAIEmbeddingClient)
+    assert client.dimension == 384
+
+
+@pytest.mark.asyncio
+async def test_openai_embedding_client_live() -> None:
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        pytest.skip("OPENAI_API_KEY not set in environment")
+
+    client = OpenAIEmbeddingClient(model_name="text-embedding-3-small", dimension=384)
+    assert client.dimension == 384
+
+    query_vec = await client.embed_query("testing live openai embeddings")
+    assert len(query_vec) == 384
+    norm = math.sqrt(sum(x * x for x in query_vec))
+    assert pytest.approx(norm, rel=1e-4) == 1.0
+
+    doc_vecs = await client.embed_documents(["passage alpha", "passage beta"])
+    assert len(doc_vecs) == 2
+    assert len(doc_vecs[0]) == 384
+    assert len(doc_vecs[1]) == 384
+    assert pytest.approx(math.sqrt(sum(x * x for x in doc_vecs[0])), rel=1e-4) == 1.0

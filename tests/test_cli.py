@@ -148,3 +148,9 @@ def test_cli_embed_pending_and_reindex(
         assert code_reindex == 0
         out_reindex = capsys.readouterr().out
         assert "Reindexed database with model 'BAAI/bge-small-en-v1.5'" in out_reindex
+
+        # 3. reindex with OpenAI model
+        code_reindex_openai = main(["reindex", "--model", "text-embedding-3-small"])
+        assert code_reindex_openai == 0
+        out_reindex_openai = capsys.readouterr().out
+        assert "Reindexed database with model 'text-embedding-3-small'" in out_reindex_openai

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sqlite3
 import stat
@@ -112,19 +113,37 @@ def run_doctor(settings: Settings | None = None) -> int:
         print(f"[FAIL] sqlite-vec: could not load ({e})")
         issues.append("Install or repair sqlite-vec: pip install 'sqlite-vec>=0.1.6'")
 
-    # 3. FastEmbed check
-    try:
-        import fastembed  # noqa: F401
+    # 3. Embedding provider check
+    if cfg.embedding_provider == "openai":
+        try:
+            import openai  # noqa: F401
 
-        print("[PASS] fastembed: installed and importable")
-    except ImportError:
-        if cfg.embedding_provider == "fastembed":
+            print("[PASS] openai: installed and importable")
+        except ImportError:
+            print("[FAIL] openai: not installed (install with pip install openai)")
+            issues.append("Install openai for vector embeddings: pip install 'openai>=1.0.0'")
+
+        api_key = cfg.openai_api_key or os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            masked = api_key[:3] + "..." + api_key[-4:] if len(api_key) > 8 else "***"
+            print(f"[PASS] OPENAI_API_KEY: configured ({masked})")
+        else:
+            print("[WARN] OPENAI_API_KEY: not set (vector search falls back to keyword only)")
+            issues.append("Set OPENAI_API_KEY environment variable for OpenAI vector embeddings.")
+    elif cfg.embedding_provider == "fastembed":
+        try:
+            import fastembed  # noqa: F401
+
+            print("[PASS] fastembed: installed and importable")
+        except ImportError:
             print("[WARN] fastembed: not installed (vector search falls back to keyword only)")
             issues.append(
                 "Install fastembed for dense vector search: pip install 'mem-plane[embed]'"
             )
-        else:
-            print(f"[INFO] fastembed: not installed (provider is {cfg.embedding_provider})")
+    elif cfg.embedding_provider == "dummy":
+        print("[INFO] Embedding provider is set to 'dummy' (offline/test mode)")
+    else:
+        print(f"[INFO] Embedding provider is set to '{cfg.embedding_provider}'")
 
     # 4. Database path and permissions
     db_path = Path(cfg.db_path).expanduser().resolve()

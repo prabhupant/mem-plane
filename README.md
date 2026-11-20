@@ -295,8 +295,9 @@ Configure `mem-plane` via environment variables or a `.env` file:
 | :--- | :--- | :--- |
 | `MEM_PLANE_DB_PATH` | `~/.mem-plane/memory.db` | Local SQLite database file path. |
 | `MEM_PLANE_LOG_DIR` | `~/.mem-plane/logs` | Directory for logs and debug payloads. |
-| `MEM_PLANE_EMBEDDING_PROVIDER` | `fastembed` | Embedding provider (`fastembed`, `none`, `dummy`). |
-| `MEM_PLANE_EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | Dense vector embedding model name. |
+| `MEM_PLANE_EMBEDDING_PROVIDER` | `openai` | Embedding provider (`openai`, `fastembed`, `none`, `dummy`). |
+| `MEM_PLANE_EMBEDDING_MODEL` | `text-embedding-3-small` | Dense vector embedding model name (`text-embedding-3-small`, `BAAI/bge-small-en-v1.5`). |
+| `OPENAI_API_KEY` | *(env)* | OpenAI API key for vector embeddings. |
 | `MEM_PLANE_PRUNE_ENABLED` | `1` | Enable or disable `PostToolUse` pruner. |
 | `MEM_PLANE_PRUNE_MAX_LINES` | `120` | Output line threshold before pruning. |
 | `MEM_PLANE_PRUNE_MAX_CHARS` | `8000` | Output character threshold before pruning. |

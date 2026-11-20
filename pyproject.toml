@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.7.0",
     "pydantic-settings>=2.2.0",
     "numpy>=1.26.0",
+    "openai>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -27,6 +28,7 @@ sqlite = [
     "sqlean.py>=3.45.0",
 ]
 embed = [
+    "openai>=1.0.0",
     "fastembed>=0.3.0",
 ]
 mcp = [
