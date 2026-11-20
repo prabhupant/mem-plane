@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from mem_plane.core.models import TraceRecord
+from mem_plane.core.redact import redact_secrets
 from mem_plane.hooks.preview import build_preview
 from mem_plane.project import resolve_project
 from mem_plane.storage.sqlite.store import SQLiteStore
@@ -96,6 +97,10 @@ def handle_post_tool_use(payload: PostToolUseInput, settings: Settings) -> dict[
         elif "exit_code" in resp and isinstance(resp["exit_code"], int):
             exit_code = resp["exit_code"]
 
+        # Redact secrets before saving trace (Section 17.2)
+        save_stdout = redact_secrets(stdout, enabled=settings.redact)
+        save_stderr = redact_secrets(stderr, enabled=settings.redact)
+
         # Save complete trace in store
         trace = TraceRecord(
             trace_id=trace_id,
@@ -103,8 +108,8 @@ def handle_post_tool_use(payload: PostToolUseInput, settings: Settings) -> dict[
             session_id=payload.session_id,
             tool_name=payload.tool_name,
             command=cmd,
-            stdout=stdout,
-            stderr=stderr,
+            stdout=save_stdout,
+            stderr=save_stderr,
             exit_code=exit_code,
             line_count=total_lines,
             char_count=total_chars,
@@ -120,7 +125,7 @@ def handle_post_tool_use(payload: PostToolUseInput, settings: Settings) -> dict[
 
         new_stdout = (
             build_preview(
-                stdout,
+                save_stdout,
                 trace_id=trace_id,
                 stream="stdout",
                 exit_code=exit_code,
@@ -132,7 +137,7 @@ def handle_post_tool_use(payload: PostToolUseInput, settings: Settings) -> dict[
 
         new_stderr = (
             build_preview(
-                stderr,
+                save_stderr,
                 trace_id=trace_id,
                 stream="stderr",
                 exit_code=exit_code,

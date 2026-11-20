@@ -173,6 +173,14 @@ class SQLiteStore(MemoryStore):
         row = cur.fetchone()
         return int(row[0]) if row else 1
 
+    def end_session(self, session_id: str) -> None:
+        now = datetime.now(UTC).isoformat()
+        self.conn.execute(
+            "UPDATE sessions SET ended_at = ?, last_event_at = ? WHERE session_id = ?;",
+            (now, now, session_id),
+        )
+        self.conn.commit()
+
     # ---------- facts ----------
 
     def create_fact(self, fact: Fact) -> CreateResult:

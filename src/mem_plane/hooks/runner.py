@@ -85,7 +85,26 @@ def run_hook(event: str) -> int:
             payload_obj = PostToolUseInput.model_validate(data)
             result = handle_post_tool_use(payload_obj, settings)
 
-        # Other events wired in M4, M5, M7
+        elif normalized_event == "stop":
+            from mem_plane.hooks.inputs import StopInput
+            from mem_plane.hooks.stop import handle_stop
+
+            stop_payload = StopInput.model_validate(data)
+            result = handle_stop(stop_payload, settings)
+
+        elif normalized_event in ("precompact", "compact"):
+            from mem_plane.hooks.inputs import PreCompactInput
+            from mem_plane.hooks.pre_compact import handle_pre_compact
+
+            pre_compact_payload = PreCompactInput.model_validate(data)
+            result = handle_pre_compact(pre_compact_payload, settings)
+
+        elif normalized_event in ("sessionend", "end"):
+            from mem_plane.hooks.inputs import SessionEndInput
+            from mem_plane.hooks.session_end import handle_session_end
+
+            end_payload = SessionEndInput.model_validate(data)
+            result = handle_session_end(end_payload, settings)
 
         if result is not None:
             sys.stdout.write(json.dumps(result))

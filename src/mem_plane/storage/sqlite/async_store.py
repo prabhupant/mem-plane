@@ -54,6 +54,9 @@ class AsyncSQLiteStore:
     async def increment_compactions(self, session_id: str) -> int:
         return await asyncio.to_thread(self._sync_store.increment_compactions, session_id)
 
+    async def end_session(self, session_id: str) -> None:
+        await asyncio.to_thread(self._sync_store.end_session, session_id)
+
     async def create_fact(self, fact: Fact) -> CreateResult:
         return await asyncio.to_thread(self._sync_store.create_fact, fact)
 
