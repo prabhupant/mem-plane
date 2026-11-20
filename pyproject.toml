@@ -35,6 +35,9 @@ mcp = [
     "mcp>=1.0.0",
 ]
 
+[project.scripts]
+mem-plane = "mem_plane.cli:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/mem_plane"]
 
