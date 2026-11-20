@@ -332,22 +332,22 @@ Goal: a new user can install and use mem-plane from the README alone.
 
 ## M7: Optional features (§9.6, §9.8, §13)
 
-- [ ] **M7.1** Auto recall hook, keyword only, off by default. (§9.8)
-  - Commit:
-- [ ] **M7.2** `AUTO_RECALL_MIN_SCORE` tuned with the evaluation set; result recorded in `docs/benchmarks.md`.
-  - Commit:
-- [ ] **M7.3** Fact extractor, off by default, writes with `source='extractor'`, never pins. (§9.6)
-  - Commit:
-- [ ] **M7.4** Extractor prompt and output parsing tests with a mocked model.
-  - Commit:
-- [ ] **M7.5** `examples/custom_loop.py` using pinned facts in a cached system prompt. (§13)
-  - Commit:
-- [ ] **M7.6** Documentation for all three features, each stating its token or API cost.
-  - Commit:
-- [ ] **M7.7** Benchmark rerun with auto recall on, compared with off.
-  - Commit:
+- [x] **M7.1** Auto recall hook, keyword only, off by default. (§9.8)
+  - Commit: `5e9607e`
+- [x] **M7.2** `AUTO_RECALL_MIN_SCORE` tuned with the evaluation set; result recorded in `docs/benchmarks.md`.
+  - Commit: `5e9607e`
+- [x] **M7.3** Fact extractor, off by default, writes with `source='extractor'`, never pins. (§9.6)
+  - Commit: `5e9607e`
+- [x] **M7.4** Extractor prompt and output parsing tests with a mocked model.
+  - Commit: `5e9607e`
+- [x] **M7.5** `examples/custom_loop.py` using pinned facts in a cached system prompt. (§13)
+  - Commit: `5e9607e`
+- [x] **M7.6** Documentation for all three features, each stating its token or API cost.
+  - Commit: `5e9607e`
+- [x] **M7.7** Benchmark rerun with auto recall on, compared with off.
+  - Commit: `707e652`
 
-**Gate M7:** [ ] All three features are off by default, documented, and tested.
+**Gate M7:** [x] All three features are off by default, documented, and tested.
 
 ---
 
@@ -382,6 +382,13 @@ Record every decision that differs from the spec, or fills a gap the spec left o
 ## Session log
 
 The agent adds one entry per working session, newest first.
+
+### 2026-11-20, session 8
+Tasks completed: M7.1 through M7.7 (Milestone 7 complete)
+Tasks in progress: None (All Milestones M0 through M7 complete!)
+Blocked: none
+Test status: 153 passed, 0 failed; mypy clean (92 files); ruff clean (106 files)
+Notes: Completed Milestone 7 (Optional features). Implemented UserPromptSubmit hook (src/mem_plane/hooks/user_prompt_submit.py) with keyword-only search, zero heavy imports, and score thresholding under an 800-character budget. Tuned AUTO_RECALL_MIN_SCORE to 6.2 (corresponding to 30th percentile of true match BM25 scores on the 150-query retrieval eval set). Implemented fact extractor in src/mem_plane/pipeline/extractor.py with structured extraction for decisions, rules, bugfixes, and conventions, source='extractor', unpinned invariant (pinned=0), and SHA-256 deduplication. Created tests with mocked models in tests/test_extractor.py and hook tests in tests/hooks/test_user_prompt_submit.py. Built examples/custom_loop.py showcasing SDK prompt zones, Anthropic ephemeral cache_control headers, and in-process tool calling. Documented token and API costs for all three optional features in docs/optional_features.md. Ran auto-recall benchmark comparison in eval/benchmark/run_benchmark.py and recorded in docs/benchmarks.md showing trade-off (+5.3% weighted tokens for +2.5% recall accuracy), confirming off-by-default is optimal. Gate M7 fully passed. Commits: `5e9607e`, `707e652`.
 
 ### 2026-11-20, session 7
 Tasks completed: M6.1 through M6.15 (Milestone 6 complete)
