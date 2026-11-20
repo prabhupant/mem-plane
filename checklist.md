@@ -314,7 +314,7 @@ Goal: a new user can install and use mem-plane from the README alone.
 - [x] **M6.10** Benchmark runs: 5 tasks, 5 runs each, with and without mem-plane, plus the recall quiz. Results in `docs/benchmarks.md`.
   - Commit: `a044c5f`
 - [x] **M6.11** README rewritten: install steps, how it works, real benchmark numbers only, unproven claims removed. (§13, §14.1)
-  - Commit: `a044c5f`
+  - Commit: `a044c5f`, `d887e51`
 - [x] **M6.12** `docs/storage.md` explaining the SQLite decision and the frozen backend. (§4)
   - Commit: `a044c5f`
 - [x] **M6.13** `docs/architecture.md` updated to the hook-based design.
