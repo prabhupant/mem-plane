@@ -13,7 +13,7 @@
 [![MCP Ready](https://img.shields.io/badge/MCP-2.0%20Compatible-green.svg?style=flat-square)](https://modelcontextprotocol.io/)
 [![Tests](https://img.shields.io/badge/tests-34%20passed-success.svg?style=flat-square)](https://github.com/prabhupant/mem-plane)
 
-[Key Problems Solved](#1-key-problems-solved) • [The 4-Zone Governor](#2-the-4-zone-context-governor) • [How It Works](#3-core-architecture--mechanics) • [Claude Code & AGY Setup](#4-claude-code--antigravity-agy-setup) • [Python SDK](#5-python-sdk--quickstart) • [Inspecting the Database](#6-inspecting-the-database) • [Dev-to-Prod Parity](#7-dev-to-prod-storage-parity)
+[Key Problems Solved](#1-key-problems-solved) • [The 4-Zone Governor](#2-the-4-zone-context-governor) • [How It Works](#3-core-architecture--mechanics) • [Claude Code Setup](#4-claude-code-setup) • [Python SDK](#5-python-sdk--quickstart) • [Inspecting the Database](#6-inspecting-the-database) • [Dev-to-Prod Parity](#7-dev-to-prod-storage-parity)
 
 </div>
 
@@ -111,11 +111,9 @@ FAILED tests/test_crypto.py::test_argon2 - AssertionError: hash mismatch
 
 ---
 
-## 4. Claude Code & Antigravity (AGY) Setup
+## 4. Claude Code Setup
 
-`mem-plane` provides ready-to-use skills and configurations for both **Claude Code** and **Google Antigravity (AGY)** out of the box.
-
-### A. Claude Code Setup
+`mem-plane` provides ready-to-use skills and configuration for **Claude Code** out of the box.
 
 Run this single command in your project directory:
 ```bash
@@ -130,14 +128,6 @@ Claude Code will automatically detect the server and activate the skills in [`.c
 * **`memplane-provenance.md`**: Teaches the agent to audit fact origins and commit SHAs.
 * **`memplane-trace.md`**: Instructs the agent how to inspect truncated outputs without re-running commands.
 * **`memplane-remember.md`**: Teaches the agent to extract and record durable architectural decisions and rules.
-
-### B. Google Antigravity (AGY) Setup
-
-Antigravity automatically discovers project customizations in [`.agents/`](./.agents):
-* **MCP Server Config:** [`.agents/mcp_config.json`](./.agents/mcp_config.json)
-* **Antigravity Skills:** [`.agents/skills/`](./.agents/skills)
-
-Launch `agy` or Antigravity IDE in this directory. The 4 tools and memory skills will be loaded automatically into your session!
 
 ---
 
@@ -247,13 +237,6 @@ export MEM_PLANE_POSTGRES_DSN=postgresql://user:pass@postgres.internal:5432/mem_
 
 ```text
 mem-plane/
-├── .agents/                          # Google Antigravity (AGY) Integration
-│   ├── mcp_config.json               # Project MCP configuration (git-ignored)
-│   └── skills/                       # On-demand AGY workflow skills
-│       ├── memplane-search/SKILL.md
-│       ├── memplane-provenance/SKILL.md
-│       ├── memplane-trace/SKILL.md
-│       └── memplane-remember/SKILL.md
 ├── .claude/                          # Claude Code Integration
 │   └── skills/                       # On-demand Claude Code workflow skills
 │       ├── memplane-search.md

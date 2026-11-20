@@ -318,7 +318,7 @@ Follow this sequential execution order. Each stage must pass its unit/integratio
 
 ---
 
-## 6. Execution Directives for Antigravity
+## 6. Execution Directives
 
 When executing this build:
 1. Run all commands inside a virtual environment.
