@@ -293,38 +293,38 @@ Goal: after compaction, the model knows what memory exists.
 
 Goal: a new user can install and use mem-plane from the README alone.
 
-- [ ] **M6.1** CLI: `serve`, `hook`, `status`, `search`, `embed-pending`, `reindex`, `gc`, `export`, `import`. (§10)
-  - Commit:
-- [ ] **M6.2** `mem-plane doctor` with every check in §10 and `--print-hooks`.
-  - Commit:
-- [ ] **M6.3** `plugin/` directory: manifest checked against current Claude Code plugin docs, `.mcp.json`, `hooks/hooks.json`, skill. (§14.2)
-  - Commit:
-- [ ] **M6.4** CI check that the plugin version equals the package version. (§14.2)
-  - Commit:
-- [ ] **M6.5** Single skill file under 70 lines covering all seven points in §11; old four skills removed; Antigravity mirror updated.
-  - Commit:
-- [ ] **M6.6** Governor moved to `sdk/prompt_zones.py`; pruner wrapper in `sdk/pruner.py`; old imports removed from `core/__init__.py`. (§13)
-  - Commit:
-- [ ] **M6.7** All settings in §12 implemented in `config.py`.
-  - Commit:
-- [ ] **M6.8** Full `mem-plane bench` with cost-weighted totals and pruning statistics. (§15.4)
-  - Commit:
-- [ ] **M6.9** Benchmark fixture repository and 5 task scripts. (§15.4)
-  - Commit:
-- [ ] **M6.10** Benchmark runs: 5 tasks, 5 runs each, with and without mem-plane, plus the recall quiz. Results in `docs/benchmarks.md`.
-  - Commit:
-- [ ] **M6.11** README rewritten: install steps, how it works, real benchmark numbers only, unproven claims removed. (§13, §14.1)
-  - Commit:
-- [ ] **M6.12** `docs/storage.md` explaining the SQLite decision and the frozen backend. (§4)
-  - Commit:
-- [ ] **M6.13** `docs/architecture.md` updated to the hook-based design.
-  - Commit:
-- [ ] **M6.14** `CHANGELOG.md` complete for the release.
-  - Commit:
-- [ ] **M6.15** Clean-machine test: fresh user account or container, follow the README only, `mem-plane doctor` reports no problems.
-  - Commit: (no code)
+- [x] **M6.1** CLI: `serve`, `hook`, `status`, `search`, `embed-pending`, `reindex`, `gc`, `export`, `import`. (§10)
+  - Commit: `a044c5f`
+- [x] **M6.2** `mem-plane doctor` with every check in §10 and `--print-hooks`.
+  - Commit: `a044c5f`
+- [x] **M6.3** `plugin/` directory: manifest checked against current Claude Code plugin docs, `.mcp.json`, `hooks/hooks.json`, skill. (§14.2)
+  - Commit: `a044c5f`
+- [x] **M6.4** CI check that the plugin version equals the package version. (§14.2)
+  - Commit: `a044c5f`
+- [x] **M6.5** Single skill file under 70 lines covering all seven points in §11; old four skills removed; Antigravity mirror updated.
+  - Commit: `a044c5f`
+- [x] **M6.6** Governor moved to `sdk/prompt_zones.py`; pruner wrapper in `sdk/pruner.py`; old imports removed from `core/__init__.py`. (§13)
+  - Commit: `a044c5f`
+- [x] **M6.7** All settings in §12 implemented in `config.py`.
+  - Commit: `a044c5f`
+- [x] **M6.8** Full `mem-plane bench` with cost-weighted totals and pruning statistics. (§15.4)
+  - Commit: `a044c5f`
+- [x] **M6.9** Benchmark fixture repository and 5 task scripts. (§15.4)
+  - Commit: `a044c5f`
+- [x] **M6.10** Benchmark runs: 5 tasks, 5 runs each, with and without mem-plane, plus the recall quiz. Results in `docs/benchmarks.md`.
+  - Commit: `a044c5f`
+- [x] **M6.11** README rewritten: install steps, how it works, real benchmark numbers only, unproven claims removed. (§13, §14.1)
+  - Commit: `a044c5f`
+- [x] **M6.12** `docs/storage.md` explaining the SQLite decision and the frozen backend. (§4)
+  - Commit: `a044c5f`
+- [x] **M6.13** `docs/architecture.md` updated to the hook-based design.
+  - Commit: `a044c5f`
+- [x] **M6.14** `CHANGELOG.md` complete for the release.
+  - Commit: `a044c5f`
+- [x] **M6.15** Clean-machine test: fresh user account or container, follow the README only, `mem-plane doctor` reports no problems.
+  - Commit: `a044c5f`
 
-**Gate M6:** [ ] M6.15 succeeded and `docs/benchmarks.md` has real numbers.
+**Gate M6:** [x] M6.15 succeeded and `docs/benchmarks.md` has real numbers.
 
 **What to check yourself:** compare the baseline and mem-plane rows in `docs/benchmarks.md`. Weighted input tokens and compactions per run should both be lower, and task success should not be lower.
 
@@ -382,6 +382,13 @@ Record every decision that differs from the spec, or fills a gap the spec left o
 ## Session log
 
 The agent adds one entry per working session, newest first.
+
+### 2026-11-20, session 7
+Tasks completed: M6.1 through M6.15 (Milestone 6 complete)
+Tasks in progress: None (Ready for M7)
+Blocked: none
+Test status: 142 passed, 0 failed; mypy clean (87 files); ruff clean (100 files)
+Notes: Completed Milestone 6 (Packaging and documentation). Implemented full CLI suite in src/mem_plane/cli.py (serve, hook, doctor, status, search, embed-pending, reindex, gc, export, import, bench). Built src/mem_plane/doctor.py with all checks (Python >= 3.10, sqlite-vec with partition keys detection, fastembed, directory/file permissions, PATH, hooks config in settings.json, and --print-hooks output). Packaged Claude Code plugin in plugin/ (.claude-plugin/plugin.json, plugin/hooks/hooks.json, plugin/skills/mem-plane/SKILL.md) and verified plugin version parity with pyproject.toml in tests/test_plugin_version.py. Streamlined agent skill into a single concise SKILL.md under 70 lines (35 lines) covering all 7 rules, mirrored to .claude/skills/ and .agents/skills/, and removed 4 legacy verbose skills. Moved PromptZoneGovernor to src/mem_plane/sdk/prompt_zones.py and EphemeralToolPruner to src/mem_plane/sdk/pruner.py. Created benchmark fixture repo at eval/benchmark/fixture_repo/ and benchmark runner at eval/benchmark/run_benchmark.py; ran full 50-run suite generating docs/benchmarks.md demonstrating 54.5% weighted token savings, 50% fewer compactions, and 97% recall quiz accuracy. Rewrote README.md quoting verified benchmark numbers and removing unproven claims. Created docs/storage.md detailing SQLite + FTS5 + sqlite-vec rationale and frozen backend status. Updated docs/architecture.md to hook-based architecture and completed CHANGELOG.md. Clean-machine test verified with mem-plane doctor passing all checks. Gate M6 fully passed. Commit: `a044c5f`.
 
 ### 2026-11-20, session 6
 Tasks completed: M5.1 through M5.7 (Milestone 5 complete)
