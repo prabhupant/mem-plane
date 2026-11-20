@@ -6,6 +6,7 @@ import argparse
 import sys
 from collections.abc import Sequence
 
+from mem_plane.bench import run_bench
 from mem_plane.hooks.runner import run_hook
 
 
@@ -72,6 +73,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "hook":
         return run_hook(args.event)
+
+    if args.command == "bench":
+        return run_bench(args.transcripts)
 
     print(f"Command '{args.command}' is not implemented yet.", file=sys.stderr)
     return 1
