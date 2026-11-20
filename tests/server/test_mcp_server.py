@@ -1,143 +1,102 @@
-"""End-to-end integration tests for MCP server and tools."""
+"""End-to-end integration tests for MCP server daemon and tools (Section 8.1, 8.2)."""
 
-import json
-from collections.abc import AsyncGenerator
-from typing import Any
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
 from mem_plane.pipeline.embeddings import DummyEmbeddingClient
 from mem_plane.server.mcp_server import create_mcp_server
-from mem_plane.server.tools import MemPlaneService
-from mem_plane.storage.sqlite.backend import SQLiteBackend
+from mem_plane.server.service import MemPlaneService
+from mem_plane.storage.sqlite.store import SQLiteStore
 
 
 @pytest.fixture
-async def mcp_service_and_server() -> AsyncGenerator[tuple[MemPlaneService, Any], None]:
-    """Fixture providing initialized SQLiteBackend, MemPlaneService, and MCPServer."""
-    backend = SQLiteBackend(database=":memory:", dimension=384)
-    await backend.initialize()
-    embedding_client = DummyEmbeddingClient(dimension=384)
+def mcp_server_setup(tmp_path: Path) -> tuple[MemPlaneService, object]:
+    db_file = tmp_path / "mcp_test.db"
+    store = SQLiteStore(database=db_file)
+    client = DummyEmbeddingClient(dimension=384)
     service = MemPlaneService(
-        storage=backend,
-        search_index=backend,
-        embedding_client=embedding_client,
+        store=store,
+        project_id="p_mcp_test",
+        embedding_client=client,
+        project_root=str(tmp_path),
     )
     server = create_mcp_server(service)
-    try:
-        yield service, server
-    finally:
-        await backend.close()
+    return service, server
 
 
 @pytest.mark.asyncio
-async def test_mcp_record_search_and_dereference_lifecycle(
-    mcp_service_and_server: tuple[MemPlaneService, Any],
+async def test_mcp_tools_end_to_end_lifecycle(
+    mcp_server_setup: tuple[MemPlaneService, object],
 ) -> None:
-    """End-to-end test recording a fact, searching surrogates, and dereferencing raw provenance."""
-    _service, server = mcp_service_and_server
+    _service, server = mcp_server_setup
 
-    # 1. Record a new fact via MCP tool call
-    record_call = await server.call_tool(
+    # 1. record_fact
+    res_rec = await server.call_tool(  # type: ignore[attr-defined]
         "record_fact",
         {
-            "summary": "Argon2id chosen for password hashing with 64MB memory cost",
-            "raw_content": (
-                "Implemented in security/crypto.py using argon2-cffi. "
-                "Parameters: time_cost=3, memory_cost=65536, parallelism=4."
-            ),
-            "source_type": "chat_turn",
-            "provenance_metadata": {
-                "author": "bob",
-                "commit_sha": "f9e8d7c6",
-                "path": "security/crypto.py",
-            },
+            "summary": "JWT auth with 15m expiry",
+            "body": "Tokens refresh after 7 days.",
+            "kind": "decision",
+            "pin": True,
         },
     )
-    assert not record_call.is_error
-    record_data = json.loads(record_call.content[0].text)
-    assert record_data["status"] == "success"
-    fact_id = record_data["fact_id"]
-    assert fact_id is not None
+    assert not res_rec.is_error
+    rec_text = res_rec.content[0].text
+    assert rec_text.startswith("recorded f_")
+    fact_id = rec_text.split()[1]
 
-    # 2. Stage 1: Query memory for surrogates via search_episodic_memory
-    search_call = await server.call_tool(
-        "search_episodic_memory",
-        {"query": "Argon2id password hashing parameters", "top_k": 3},
+    # 2. search_memory
+    res_search = await server.call_tool(  # type: ignore[attr-defined]
+        "search_memory",
+        {"query": "JWT auth tokens", "top_k": 5},
     )
-    assert not search_call.is_error
-    search_results = json.loads(search_call.content[0].text)
-    assert len(search_results) == 1
-    hit = search_results[0]
-    assert hit["fact_id"] == fact_id
-    assert "Argon2id chosen" in hit["summary"]
-    assert hit["source_path"] == "security/crypto.py"
-    # Verify lightweight surrogate footprint
-    assert hit["token_estimate"] == 30
+    assert not res_search.is_error
+    search_text = res_search.content[0].text
+    assert fact_id in search_text
+    assert "JWT auth with 15m expiry" in search_text
 
-    # 3. Stage 2: Dereference full raw document & provenance via inspect_fact_provenance
-    provenance_call = await server.call_tool(
-        "inspect_fact_provenance",
-        {"fact_id": fact_id},
+    # 3. get_memory
+    res_get = await server.call_tool(  # type: ignore[attr-defined]
+        "get_memory",
+        {"ref": fact_id},
     )
-    assert not provenance_call.is_error
-    full_fact = json.loads(provenance_call.content[0].text)
-    assert full_fact["fact_id"] == fact_id
-    assert "time_cost=3" in full_fact["raw_content"]
-    assert full_fact["provenance_metadata"]["commit_sha"] == "f9e8d7c6"
-    assert full_fact["provenance_metadata"]["author"] == "bob"
+    assert not res_get.is_error
+    get_text = res_get.content[0].text
+    assert fact_id in get_text
+    assert "[PINNED]" in get_text
 
-
-@pytest.mark.asyncio
-async def test_mcp_dereference_raw_trace(
-    mcp_service_and_server: tuple[MemPlaneService, Any],
-) -> None:
-    """End-to-end test dereferencing a pruned raw execution trace via MCP tool."""
-    service, server = mcp_service_and_server
-
-    # Save a mock tool trace out-of-band in storage
-    trace_id = "trace-pytest-failure-001"
-    raw_stack_trace = (
-        "FAILED tests/test_crypto.py::test_argon2 - AssertionError: hash mismatch\n"
-        "AssertionError: '$argon2id$v=19$m=65536...' != '$argon2id$v=19$m=32768...'"
+    # 4. update_memory
+    res_up = await server.call_tool(  # type: ignore[attr-defined]
+        "update_memory",
+        {"fact_id": fact_id, "summary": "JWT auth with 30m expiry"},
     )
-    await service.storage.save_tool_trace(trace_id, raw_stack_trace)
+    assert not res_up.is_error
+    assert res_up.content[0].text == f"updated {fact_id}"
 
-    # Call dereference_raw_trace MCP tool
-    trace_call = await server.call_tool(
-        "dereference_raw_trace",
-        {"trace_id": trace_id},
+    # 5. pin_memory
+    res_pin = await server.call_tool(  # type: ignore[attr-defined]
+        "pin_memory",
+        {"fact_id": fact_id, "pinned": False},
     )
-    assert not trace_call.is_error
-    retrieved_text = trace_call.content[0].text
-    assert retrieved_text == raw_stack_trace
+    assert not res_pin.is_error
+    assert res_pin.content[0].text == f"unpinned {fact_id}"
 
-
-@pytest.mark.asyncio
-async def test_mcp_missing_resources_handling(
-    mcp_service_and_server: tuple[MemPlaneService, Any],
-) -> None:
-    """Validate behavior for missing facts, traces, or empty queries."""
-    _service, server = mcp_service_and_server
-
-    # Empty search query returns empty array
-    empty_search = await server.call_tool(
-        "search_episodic_memory",
-        {"query": "   ", "top_k": 5},
+    # 6. memory_status
+    res_status = await server.call_tool(  # type: ignore[attr-defined]
+        "memory_status",
+        {},
     )
-    assert empty_search.content[0].text == "[]"
+    assert not res_status.is_error
+    status_text = res_status.content[0].text
+    assert "Active facts: 1" in status_text
 
-    # Non-existent fact returns error JSON
-    missing_fact = await server.call_tool(
-        "inspect_fact_provenance",
-        {"fact_id": "non-existent-fact"},
+    # 7. forget_memory
+    res_forget = await server.call_tool(  # type: ignore[attr-defined]
+        "forget_memory",
+        {"fact_id": fact_id, "reason": "No longer using JWT"},
     )
-    res_json = json.loads(missing_fact.content[0].text)
-    assert "error" in res_json
-
-    # Non-existent trace returns clear not found message
-    missing_trace = await server.call_tool(
-        "dereference_raw_trace",
-        {"trace_id": "non-existent-trace"},
-    )
-    assert "Trace not found" in missing_trace.content[0].text
+    assert not res_forget.is_error
+    assert res_forget.content[0].text == f"forgot {fact_id}: No longer using JWT"

@@ -1,0 +1,150 @@
+{"query_id": "q_0001", "project": "payments-api", "query": "--no-cov flag", "relevant": ["f_paym_0001"], "type": "exact_identifier"}
+{"query_id": "q_0002", "project": "payments-api", "query": "argon2id", "relevant": ["f_paym_0002"], "type": "exact_identifier"}
+{"query_id": "q_0003", "project": "payments-api", "query": "busy_timeout=5000", "relevant": ["f_paym_0003"], "type": "exact_identifier"}
+{"query_id": "q_0004", "project": "payments-api", "query": "sqlite-vec v0.1.6", "relevant": ["f_paym_0004"], "type": "exact_identifier"}
+{"query_id": "q_0005", "project": "payments-api", "query": "PRAGMA synchronous=NORMAL", "relevant": ["f_paym_0005"], "type": "exact_identifier"}
+{"query_id": "q_0006", "project": "payments-api", "query": "auth_jwt_v2", "relevant": ["f_paym_0006"], "type": "exact_identifier"}
+{"query_id": "q_0007", "project": "payments-api", "query": "stripe_webhook_secret", "relevant": ["f_paym_0007"], "type": "exact_identifier"}
+{"query_id": "q_0008", "project": "payments-api", "query": "redis_pool_size=20", "relevant": ["f_paym_0008"], "type": "exact_identifier"}
+{"query_id": "q_0009", "project": "payments-api", "query": "MAX_RETRIES=3", "relevant": ["f_paym_0009"], "type": "exact_identifier"}
+{"query_id": "q_0010", "project": "payments-api", "query": "kafka_consumer_group", "relevant": ["f_paym_0010"], "type": "exact_identifier"}
+{"query_id": "q_0011", "project": "payments-api", "query": "snowflake_warehouse_xs", "relevant": ["f_paym_0011"], "type": "exact_identifier"}
+{"query_id": "q_0012", "project": "payments-api", "query": "parquet_snappy_compression", "relevant": ["f_paym_0012"], "type": "exact_identifier"}
+{"query_id": "q_0013", "project": "payments-api", "query": "celery_task_acks_late", "relevant": ["f_paym_0013"], "type": "exact_identifier"}
+{"query_id": "q_0014", "project": "payments-api", "query": "uvicorn_workers=4", "relevant": ["f_paym_0014"], "type": "exact_identifier"}
+{"query_id": "q_0015", "project": "payments-api", "query": "s3_bucket_prefix=archive", "relevant": ["f_paym_0015"], "type": "exact_identifier"}
+{"query_id": "q_0016", "project": "payments-api", "query": "DB_POOL_MIN_SIZE=5", "relevant": ["f_paym_0016"], "type": "exact_identifier"}
+{"query_id": "q_0017", "project": "payments-api", "query": "MAX_REQUEST_SIZE_MB=10", "relevant": ["f_paym_0017"], "type": "exact_identifier"}
+{"query_id": "q_0018", "project": "payments-api", "query": "how do we avoid thundering herd on downstream service retries", "relevant": ["f_paym_0018"], "type": "paraphrased"}
+{"query_id": "q_0019", "project": "payments-api", "query": "what happens when a service container receives sigterm signal", "relevant": ["f_paym_0019"], "type": "paraphrased"}
+{"query_id": "q_0020", "project": "payments-api", "query": "preventing duplicate credit card charges on network retransmissions", "relevant": ["f_paym_0020"], "type": "paraphrased"}
+{"query_id": "q_0021", "project": "payments-api", "query": "handling cascading failures when third party payment gateway is down", "relevant": ["f_paym_0021"], "type": "paraphrased"}
+{"query_id": "q_0022", "project": "payments-api", "query": "preventing closed socket errors on database connections behind load balancer", "relevant": ["f_paym_0022"], "type": "paraphrased"}
+{"query_id": "q_0023", "project": "payments-api", "query": "protecting public endpoints from abusive client traffic and denial of service", "relevant": ["f_paym_0023"], "type": "paraphrased"}
+{"query_id": "q_0024", "project": "payments-api", "query": "how long does an inactive user stay logged in before having to authenticate again", "relevant": ["f_paym_0024"], "type": "paraphrased"}
+{"query_id": "q_0025", "project": "payments-api", "query": "compliance requirements for tracking who viewed customer private data", "relevant": ["f_paym_0025"], "type": "paraphrased"}
+{"query_id": "q_0026", "project": "payments-api", "query": "optimizing slow queries that filter by project and sort by creation date", "relevant": ["f_paym_0026"], "type": "paraphrased"}
+{"query_id": "q_0027", "project": "payments-api", "query": "how frequently do we rotate encryption secrets and keys", "relevant": ["f_paym_0027"], "type": "paraphrased"}
+{"query_id": "q_0028", "project": "payments-api", "query": "policy for freezing production releases when reliability targets are missed", "relevant": ["f_paym_0028"], "type": "paraphrased"}
+{"query_id": "q_0029", "project": "payments-api", "query": "cleanup policy for old debugging logs and execution traces", "relevant": ["f_paym_0029"], "type": "paraphrased"}
+{"query_id": "q_0030", "project": "payments-api", "query": "guidelines for deploying database schema changes without taking the service down", "relevant": ["f_paym_0030"], "type": "paraphrased"}
+{"query_id": "q_0031", "project": "payments-api", "query": "preventing kubernetes restart loops during database maintenance", "relevant": ["f_paym_0031"], "type": "paraphrased"}
+{"query_id": "q_0032", "project": "payments-api", "query": "preventing cache stampede when popular cached item expires", "relevant": ["f_paym_0032"], "type": "paraphrased"}
+{"query_id": "q_0033", "project": "payments-api", "query": "how do we track request latency and spans across microservices", "relevant": ["f_paym_0033"], "type": "paraphrased"}
+{"query_id": "q_0034", "project": "payments-api", "query": "what domains are permitted to call our api from browser javascript", "relevant": ["f_paym_0034"], "type": "paraphrased"}
+{"query_id": "q_0035", "project": "payments-api", "query": "what database architecture do we use to isolate customer data", "relevant": ["f_paym_0036"], "type": "replaced_decision"}
+{"query_id": "q_0036", "project": "payments-api", "query": "details on per-project sqlite database with local isolation adopted", "relevant": ["f_paym_0036"], "type": "replaced_decision"}
+{"query_id": "q_0037", "project": "payments-api", "query": "what cryptographic algorithm do we use to sign authentication tokens", "relevant": ["f_paym_0038"], "type": "replaced_decision"}
+{"query_id": "q_0038", "project": "payments-api", "query": "details on jwt tokens signed with asymmetric ed25519 public-private keypairs", "relevant": ["f_paym_0038"], "type": "replaced_decision"}
+{"query_id": "q_0039", "project": "payments-api", "query": "what file format is used for nightly data exports", "relevant": ["f_paym_0040"], "type": "replaced_decision"}
+{"query_id": "q_0040", "project": "payments-api", "query": "details on batch export format upgraded to apache parquet with zstd compression", "relevant": ["f_paym_0040"], "type": "replaced_decision"}
+{"query_id": "q_0041", "project": "payments-api", "query": "how do clients receive updates when a payment transaction completes", "relevant": ["f_paym_0042"], "type": "replaced_decision"}
+{"query_id": "q_0042", "project": "payments-api", "query": "details on server-sent events sse stream used for real-time payment notifications", "relevant": ["f_paym_0042"], "type": "replaced_decision"}
+{"query_id": "q_0043", "project": "payments-api", "query": "what is the password length requirement for user accounts", "relevant": ["f_paym_0044"], "type": "replaced_decision"}
+{"query_id": "q_0044", "project": "payments-api", "query": "details on password minimum length increased to 14 characters without complexity rules", "relevant": ["f_paym_0044"], "type": "replaced_decision"}
+{"query_id": "q_0045", "project": "payments-api", "query": "what base operating system image is used in our docker containers", "relevant": ["f_paym_0046"], "type": "replaced_decision"}
+{"query_id": "q_0046", "project": "payments-api", "query": "details on docker container base image migrated to distroless minimal runtime", "relevant": ["f_paym_0046"], "type": "replaced_decision"}
+{"query_id": "q_0047", "project": "payments-api", "query": "what caching technology do we use for in-memory caching", "relevant": ["f_paym_0048"], "type": "replaced_decision"}
+{"query_id": "q_0048", "project": "payments-api", "query": "details on memory cache provider standardized on redis with redis sentinel failover", "relevant": ["f_paym_0048"], "type": "replaced_decision"}
+{"query_id": "q_0049", "project": "payments-api", "query": "where are application logs stored and searched", "relevant": ["f_paym_0050"], "type": "replaced_decision"}
+{"query_id": "q_0050", "project": "payments-api", "query": "details on log aggregation transitioned to grafana loki with object storage", "relevant": ["f_paym_0050"], "type": "replaced_decision"}
+{"query_id": "q_0051", "project": "auth-service", "query": "--no-cov flag", "relevant": ["f_auth_0051"], "type": "exact_identifier"}
+{"query_id": "q_0052", "project": "auth-service", "query": "argon2id", "relevant": ["f_auth_0052"], "type": "exact_identifier"}
+{"query_id": "q_0053", "project": "auth-service", "query": "busy_timeout=5000", "relevant": ["f_auth_0053"], "type": "exact_identifier"}
+{"query_id": "q_0054", "project": "auth-service", "query": "sqlite-vec v0.1.6", "relevant": ["f_auth_0054"], "type": "exact_identifier"}
+{"query_id": "q_0055", "project": "auth-service", "query": "PRAGMA synchronous=NORMAL", "relevant": ["f_auth_0055"], "type": "exact_identifier"}
+{"query_id": "q_0056", "project": "auth-service", "query": "auth_jwt_v2", "relevant": ["f_auth_0056"], "type": "exact_identifier"}
+{"query_id": "q_0057", "project": "auth-service", "query": "stripe_webhook_secret", "relevant": ["f_auth_0057"], "type": "exact_identifier"}
+{"query_id": "q_0058", "project": "auth-service", "query": "redis_pool_size=20", "relevant": ["f_auth_0058"], "type": "exact_identifier"}
+{"query_id": "q_0059", "project": "auth-service", "query": "MAX_RETRIES=3", "relevant": ["f_auth_0059"], "type": "exact_identifier"}
+{"query_id": "q_0060", "project": "auth-service", "query": "kafka_consumer_group", "relevant": ["f_auth_0060"], "type": "exact_identifier"}
+{"query_id": "q_0061", "project": "auth-service", "query": "snowflake_warehouse_xs", "relevant": ["f_auth_0061"], "type": "exact_identifier"}
+{"query_id": "q_0062", "project": "auth-service", "query": "parquet_snappy_compression", "relevant": ["f_auth_0062"], "type": "exact_identifier"}
+{"query_id": "q_0063", "project": "auth-service", "query": "celery_task_acks_late", "relevant": ["f_auth_0063"], "type": "exact_identifier"}
+{"query_id": "q_0064", "project": "auth-service", "query": "uvicorn_workers=4", "relevant": ["f_auth_0064"], "type": "exact_identifier"}
+{"query_id": "q_0065", "project": "auth-service", "query": "s3_bucket_prefix=archive", "relevant": ["f_auth_0065"], "type": "exact_identifier"}
+{"query_id": "q_0066", "project": "auth-service", "query": "DB_POOL_MIN_SIZE=5", "relevant": ["f_auth_0066"], "type": "exact_identifier"}
+{"query_id": "q_0067", "project": "auth-service", "query": "MAX_REQUEST_SIZE_MB=10", "relevant": ["f_auth_0067"], "type": "exact_identifier"}
+{"query_id": "q_0068", "project": "auth-service", "query": "how do we avoid thundering herd on downstream service retries", "relevant": ["f_auth_0068"], "type": "paraphrased"}
+{"query_id": "q_0069", "project": "auth-service", "query": "what happens when a service container receives sigterm signal", "relevant": ["f_auth_0069"], "type": "paraphrased"}
+{"query_id": "q_0070", "project": "auth-service", "query": "preventing duplicate credit card charges on network retransmissions", "relevant": ["f_auth_0070"], "type": "paraphrased"}
+{"query_id": "q_0071", "project": "auth-service", "query": "handling cascading failures when third party payment gateway is down", "relevant": ["f_auth_0071"], "type": "paraphrased"}
+{"query_id": "q_0072", "project": "auth-service", "query": "preventing closed socket errors on database connections behind load balancer", "relevant": ["f_auth_0072"], "type": "paraphrased"}
+{"query_id": "q_0073", "project": "auth-service", "query": "protecting public endpoints from abusive client traffic and denial of service", "relevant": ["f_auth_0073"], "type": "paraphrased"}
+{"query_id": "q_0074", "project": "auth-service", "query": "how long does an inactive user stay logged in before having to authenticate again", "relevant": ["f_auth_0074"], "type": "paraphrased"}
+{"query_id": "q_0075", "project": "auth-service", "query": "compliance requirements for tracking who viewed customer private data", "relevant": ["f_auth_0075"], "type": "paraphrased"}
+{"query_id": "q_0076", "project": "auth-service", "query": "optimizing slow queries that filter by project and sort by creation date", "relevant": ["f_auth_0076"], "type": "paraphrased"}
+{"query_id": "q_0077", "project": "auth-service", "query": "how frequently do we rotate encryption secrets and keys", "relevant": ["f_auth_0077"], "type": "paraphrased"}
+{"query_id": "q_0078", "project": "auth-service", "query": "policy for freezing production releases when reliability targets are missed", "relevant": ["f_auth_0078"], "type": "paraphrased"}
+{"query_id": "q_0079", "project": "auth-service", "query": "cleanup policy for old debugging logs and execution traces", "relevant": ["f_auth_0079"], "type": "paraphrased"}
+{"query_id": "q_0080", "project": "auth-service", "query": "guidelines for deploying database schema changes without taking the service down", "relevant": ["f_auth_0080"], "type": "paraphrased"}
+{"query_id": "q_0081", "project": "auth-service", "query": "preventing kubernetes restart loops during database maintenance", "relevant": ["f_auth_0081"], "type": "paraphrased"}
+{"query_id": "q_0082", "project": "auth-service", "query": "preventing cache stampede when popular cached item expires", "relevant": ["f_auth_0082"], "type": "paraphrased"}
+{"query_id": "q_0083", "project": "auth-service", "query": "how do we track request latency and spans across microservices", "relevant": ["f_auth_0083"], "type": "paraphrased"}
+{"query_id": "q_0084", "project": "auth-service", "query": "what domains are permitted to call our api from browser javascript", "relevant": ["f_auth_0084"], "type": "paraphrased"}
+{"query_id": "q_0085", "project": "auth-service", "query": "what database architecture do we use to isolate customer data", "relevant": ["f_auth_0086"], "type": "replaced_decision"}
+{"query_id": "q_0086", "project": "auth-service", "query": "details on per-project sqlite database with local isolation adopted", "relevant": ["f_auth_0086"], "type": "replaced_decision"}
+{"query_id": "q_0087", "project": "auth-service", "query": "what cryptographic algorithm do we use to sign authentication tokens", "relevant": ["f_auth_0088"], "type": "replaced_decision"}
+{"query_id": "q_0088", "project": "auth-service", "query": "details on jwt tokens signed with asymmetric ed25519 public-private keypairs", "relevant": ["f_auth_0088"], "type": "replaced_decision"}
+{"query_id": "q_0089", "project": "auth-service", "query": "what file format is used for nightly data exports", "relevant": ["f_auth_0090"], "type": "replaced_decision"}
+{"query_id": "q_0090", "project": "auth-service", "query": "details on batch export format upgraded to apache parquet with zstd compression", "relevant": ["f_auth_0090"], "type": "replaced_decision"}
+{"query_id": "q_0091", "project": "auth-service", "query": "how do clients receive updates when a payment transaction completes", "relevant": ["f_auth_0092"], "type": "replaced_decision"}
+{"query_id": "q_0092", "project": "auth-service", "query": "details on server-sent events sse stream used for real-time payment notifications", "relevant": ["f_auth_0092"], "type": "replaced_decision"}
+{"query_id": "q_0093", "project": "auth-service", "query": "what is the password length requirement for user accounts", "relevant": ["f_auth_0094"], "type": "replaced_decision"}
+{"query_id": "q_0094", "project": "auth-service", "query": "details on password minimum length increased to 14 characters without complexity rules", "relevant": ["f_auth_0094"], "type": "replaced_decision"}
+{"query_id": "q_0095", "project": "auth-service", "query": "what base operating system image is used in our docker containers", "relevant": ["f_auth_0096"], "type": "replaced_decision"}
+{"query_id": "q_0096", "project": "auth-service", "query": "details on docker container base image migrated to distroless minimal runtime", "relevant": ["f_auth_0096"], "type": "replaced_decision"}
+{"query_id": "q_0097", "project": "auth-service", "query": "what caching technology do we use for in-memory caching", "relevant": ["f_auth_0098"], "type": "replaced_decision"}
+{"query_id": "q_0098", "project": "auth-service", "query": "details on memory cache provider standardized on redis with redis sentinel failover", "relevant": ["f_auth_0098"], "type": "replaced_decision"}
+{"query_id": "q_0099", "project": "auth-service", "query": "where are application logs stored and searched", "relevant": ["f_auth_0100"], "type": "replaced_decision"}
+{"query_id": "q_0100", "project": "auth-service", "query": "details on log aggregation transitioned to grafana loki with object storage", "relevant": ["f_auth_0100"], "type": "replaced_decision"}
+{"query_id": "q_0101", "project": "data-pipeline", "query": "--no-cov flag", "relevant": ["f_data_0101"], "type": "exact_identifier"}
+{"query_id": "q_0102", "project": "data-pipeline", "query": "argon2id", "relevant": ["f_data_0102"], "type": "exact_identifier"}
+{"query_id": "q_0103", "project": "data-pipeline", "query": "busy_timeout=5000", "relevant": ["f_data_0103"], "type": "exact_identifier"}
+{"query_id": "q_0104", "project": "data-pipeline", "query": "sqlite-vec v0.1.6", "relevant": ["f_data_0104"], "type": "exact_identifier"}
+{"query_id": "q_0105", "project": "data-pipeline", "query": "PRAGMA synchronous=NORMAL", "relevant": ["f_data_0105"], "type": "exact_identifier"}
+{"query_id": "q_0106", "project": "data-pipeline", "query": "auth_jwt_v2", "relevant": ["f_data_0106"], "type": "exact_identifier"}
+{"query_id": "q_0107", "project": "data-pipeline", "query": "stripe_webhook_secret", "relevant": ["f_data_0107"], "type": "exact_identifier"}
+{"query_id": "q_0108", "project": "data-pipeline", "query": "redis_pool_size=20", "relevant": ["f_data_0108"], "type": "exact_identifier"}
+{"query_id": "q_0109", "project": "data-pipeline", "query": "MAX_RETRIES=3", "relevant": ["f_data_0109"], "type": "exact_identifier"}
+{"query_id": "q_0110", "project": "data-pipeline", "query": "kafka_consumer_group", "relevant": ["f_data_0110"], "type": "exact_identifier"}
+{"query_id": "q_0111", "project": "data-pipeline", "query": "snowflake_warehouse_xs", "relevant": ["f_data_0111"], "type": "exact_identifier"}
+{"query_id": "q_0112", "project": "data-pipeline", "query": "parquet_snappy_compression", "relevant": ["f_data_0112"], "type": "exact_identifier"}
+{"query_id": "q_0113", "project": "data-pipeline", "query": "celery_task_acks_late", "relevant": ["f_data_0113"], "type": "exact_identifier"}
+{"query_id": "q_0114", "project": "data-pipeline", "query": "uvicorn_workers=4", "relevant": ["f_data_0114"], "type": "exact_identifier"}
+{"query_id": "q_0115", "project": "data-pipeline", "query": "s3_bucket_prefix=archive", "relevant": ["f_data_0115"], "type": "exact_identifier"}
+{"query_id": "q_0116", "project": "data-pipeline", "query": "DB_POOL_MIN_SIZE=5", "relevant": ["f_data_0116"], "type": "exact_identifier"}
+{"query_id": "q_0117", "project": "data-pipeline", "query": "MAX_REQUEST_SIZE_MB=10", "relevant": ["f_data_0117"], "type": "exact_identifier"}
+{"query_id": "q_0118", "project": "data-pipeline", "query": "how do we avoid thundering herd on downstream service retries", "relevant": ["f_data_0118"], "type": "paraphrased"}
+{"query_id": "q_0119", "project": "data-pipeline", "query": "what happens when a service container receives sigterm signal", "relevant": ["f_data_0119"], "type": "paraphrased"}
+{"query_id": "q_0120", "project": "data-pipeline", "query": "preventing duplicate credit card charges on network retransmissions", "relevant": ["f_data_0120"], "type": "paraphrased"}
+{"query_id": "q_0121", "project": "data-pipeline", "query": "handling cascading failures when third party payment gateway is down", "relevant": ["f_data_0121"], "type": "paraphrased"}
+{"query_id": "q_0122", "project": "data-pipeline", "query": "preventing closed socket errors on database connections behind load balancer", "relevant": ["f_data_0122"], "type": "paraphrased"}
+{"query_id": "q_0123", "project": "data-pipeline", "query": "protecting public endpoints from abusive client traffic and denial of service", "relevant": ["f_data_0123"], "type": "paraphrased"}
+{"query_id": "q_0124", "project": "data-pipeline", "query": "how long does an inactive user stay logged in before having to authenticate again", "relevant": ["f_data_0124"], "type": "paraphrased"}
+{"query_id": "q_0125", "project": "data-pipeline", "query": "compliance requirements for tracking who viewed customer private data", "relevant": ["f_data_0125"], "type": "paraphrased"}
+{"query_id": "q_0126", "project": "data-pipeline", "query": "optimizing slow queries that filter by project and sort by creation date", "relevant": ["f_data_0126"], "type": "paraphrased"}
+{"query_id": "q_0127", "project": "data-pipeline", "query": "how frequently do we rotate encryption secrets and keys", "relevant": ["f_data_0127"], "type": "paraphrased"}
+{"query_id": "q_0128", "project": "data-pipeline", "query": "policy for freezing production releases when reliability targets are missed", "relevant": ["f_data_0128"], "type": "paraphrased"}
+{"query_id": "q_0129", "project": "data-pipeline", "query": "cleanup policy for old debugging logs and execution traces", "relevant": ["f_data_0129"], "type": "paraphrased"}
+{"query_id": "q_0130", "project": "data-pipeline", "query": "guidelines for deploying database schema changes without taking the service down", "relevant": ["f_data_0130"], "type": "paraphrased"}
+{"query_id": "q_0131", "project": "data-pipeline", "query": "preventing kubernetes restart loops during database maintenance", "relevant": ["f_data_0131"], "type": "paraphrased"}
+{"query_id": "q_0132", "project": "data-pipeline", "query": "preventing cache stampede when popular cached item expires", "relevant": ["f_data_0132"], "type": "paraphrased"}
+{"query_id": "q_0133", "project": "data-pipeline", "query": "how do we track request latency and spans across microservices", "relevant": ["f_data_0133"], "type": "paraphrased"}
+{"query_id": "q_0134", "project": "data-pipeline", "query": "what domains are permitted to call our api from browser javascript", "relevant": ["f_data_0134"], "type": "paraphrased"}
+{"query_id": "q_0135", "project": "data-pipeline", "query": "what database architecture do we use to isolate customer data", "relevant": ["f_data_0136"], "type": "replaced_decision"}
+{"query_id": "q_0136", "project": "data-pipeline", "query": "details on per-project sqlite database with local isolation adopted", "relevant": ["f_data_0136"], "type": "replaced_decision"}
+{"query_id": "q_0137", "project": "data-pipeline", "query": "what cryptographic algorithm do we use to sign authentication tokens", "relevant": ["f_data_0138"], "type": "replaced_decision"}
+{"query_id": "q_0138", "project": "data-pipeline", "query": "details on jwt tokens signed with asymmetric ed25519 public-private keypairs", "relevant": ["f_data_0138"], "type": "replaced_decision"}
+{"query_id": "q_0139", "project": "data-pipeline", "query": "what file format is used for nightly data exports", "relevant": ["f_data_0140"], "type": "replaced_decision"}
+{"query_id": "q_0140", "project": "data-pipeline", "query": "details on batch export format upgraded to apache parquet with zstd compression", "relevant": ["f_data_0140"], "type": "replaced_decision"}
+{"query_id": "q_0141", "project": "data-pipeline", "query": "how do clients receive updates when a payment transaction completes", "relevant": ["f_data_0142"], "type": "replaced_decision"}
+{"query_id": "q_0142", "project": "data-pipeline", "query": "details on server-sent events sse stream used for real-time payment notifications", "relevant": ["f_data_0142"], "type": "replaced_decision"}
+{"query_id": "q_0143", "project": "data-pipeline", "query": "what is the password length requirement for user accounts", "relevant": ["f_data_0144"], "type": "replaced_decision"}
+{"query_id": "q_0144", "project": "data-pipeline", "query": "details on password minimum length increased to 14 characters without complexity rules", "relevant": ["f_data_0144"], "type": "replaced_decision"}
+{"query_id": "q_0145", "project": "data-pipeline", "query": "what base operating system image is used in our docker containers", "relevant": ["f_data_0146"], "type": "replaced_decision"}
+{"query_id": "q_0146", "project": "data-pipeline", "query": "details on docker container base image migrated to distroless minimal runtime", "relevant": ["f_data_0146"], "type": "replaced_decision"}
+{"query_id": "q_0147", "project": "data-pipeline", "query": "what caching technology do we use for in-memory caching", "relevant": ["f_data_0148"], "type": "replaced_decision"}
+{"query_id": "q_0148", "project": "data-pipeline", "query": "details on memory cache provider standardized on redis with redis sentinel failover", "relevant": ["f_data_0148"], "type": "replaced_decision"}
+{"query_id": "q_0149", "project": "data-pipeline", "query": "where are application logs stored and searched", "relevant": ["f_data_0150"], "type": "replaced_decision"}
+{"query_id": "q_0150", "project": "data-pipeline", "query": "details on log aggregation transitioned to grafana loki with object storage", "relevant": ["f_data_0150"], "type": "replaced_decision"}

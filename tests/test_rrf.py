@@ -107,3 +107,50 @@ def test_rrf_top_n_truncation() -> None:
     fused = reciprocal_rank_fusion(dense, lexical, k=60, top_n=5)
     assert len(fused) == 5
     assert [doc_id for doc_id, _ in fused] == ["doc_0", "doc_1", "doc_2", "doc_3", "doc_4"]
+
+
+def test_weighted_rrf_multi_list() -> None:
+    """Test weighted RRF with 4 candidate lists and custom weights."""
+    from mem_plane.core.rrf import weighted_rrf
+
+    fact_kw = ["f_1", "f_2"]
+    fact_vec = ["f_2", "f_3"]
+    ep_kw = ["e_1", "f_1"]
+    ep_vec = ["e_2"]
+
+    # fact weights 1.0, ep weights 0.5
+    fused = weighted_rrf(
+        [
+            (fact_kw, 1.0),
+            (fact_vec, 1.0),
+            (ep_kw, 0.5),
+            (ep_vec, 0.5),
+        ],
+        k=60,
+        top_n=5,
+    )
+
+    # f_1: 1.0/(61) + 0.5/(62) = 0.016393 + 0.008064 = 0.024458
+    # f_2: 1.0/(62) + 1.0/(61) = 0.016129 + 0.016393 = 0.032522 -> highest
+    # f_3: 1.0/(62) = 0.016129
+    # e_1: 0.5/(61) = 0.008196
+    # e_2: 0.5/(61) = 0.008196
+    assert fused[0][0] == "f_2"
+    assert fused[1][0] == "f_1"
+    assert fused[2][0] == "f_3"
+    # e_1 and e_2 have equal scores; tie broke by id: e_1 < e_2
+    assert fused[3][0] == "e_1"
+    assert fused[4][0] == "e_2"
+    assert len(fused) == 5
+
+
+def test_weighted_rrf_zero_or_negative_weights() -> None:
+    from mem_plane.core.rrf import weighted_rrf
+
+    fused = weighted_rrf(
+        [(["docA"], 0.0), (["docB"], -1.0), (["docC"], 1.0)],
+        k=60,
+        top_n=5,
+    )
+    assert len(fused) == 1
+    assert fused[0][0] == "docC"

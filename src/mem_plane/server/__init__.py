@@ -1,5 +1,5 @@
-"""MCP Server and tool endpoints for mem-plane."""
+"""mem-plane MCP server and service package."""
 
-from mem_plane.server.tools import MemPlaneService
+from mem_plane.server.service import MemPlaneService
 
 __all__ = ["MemPlaneService"]

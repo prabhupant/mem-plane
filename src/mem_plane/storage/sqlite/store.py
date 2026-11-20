@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import re
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from mem_plane.config import Settings
 
 from mem_plane.core.models import (
     Fact,
@@ -43,7 +45,11 @@ class SQLiteStore(MemoryStore):
         database: str | Path | None = None,
         dimension: int = 384,
         model_name: str = "BAAI/bge-small-en-v1.5",
+        settings: Settings | None = None,
     ) -> None:
+        from mem_plane.config import Settings as ConfigSettings
+
+        self.settings = settings or ConfigSettings()
         self.conn: Any = create_sync_connection(database)
         self.dimension = dimension
         self.model_name = model_name
@@ -508,6 +514,13 @@ class SQLiteStore(MemoryStore):
                 )
                 self.conn.execute(
                     """
+                    INSERT OR IGNORE INTO sessions (session_id, project_id, started_at, last_event_at)
+                    VALUES (?, ?, ?, ?);
+                    """,
+                    (ch.session_id, ch.project_id, now_iso, now_iso),
+                )
+                self.conn.execute(
+                    """
                     INSERT INTO episode_chunks (
                         chunk_id, project_id, session_id, seq, segment,
                         start_ts, end_ts, text, token_estimate, created_at, embedded_at
@@ -718,41 +731,19 @@ class SQLiteStore(MemoryStore):
     def search(
         self, req: SearchRequest, query_vector: list[float] | None = None
     ) -> list[SearchHit]:
-        # Minimal keyword search implementation for M1; full weighted RRF is wired in M2
-        hits: list[SearchHit] = []
-        if not req.query.strip():
-            return hits
+        proj = self.get_project(req.project_id)
+        project_root = proj.root_path if proj else None
 
-        # Sanitize query for FTS
-        clean_tokens = [t for t in re.findall(r"\w+", req.query) if t]
-        if not clean_tokens:
-            return hits
-        fts_query = " OR ".join(f'"{t}"*' for t in clean_tokens[:24])
+        from mem_plane.storage.sqlite.search import execute_hybrid_search
 
-        cur = self.conn.execute(
-            """
-            SELECT f.fact_id, f.summary, f.kind, f.pinned, f.created_at, bm25(facts_fts) as rank
-            FROM facts_fts
-            JOIN facts f ON facts_fts.fact_id = f.fact_id
-            WHERE facts_fts MATCH ? AND f.project_id = ? AND f.status = 'active'
-            ORDER BY rank ASC
-            LIMIT ?;
-            """,
-            (fts_query, req.project_id, req.limit),
+        return execute_hybrid_search(
+            conn=self.conn,
+            req=req,
+            query_vector=query_vector,
+            partition_keys=self.partition_keys_supported,
+            settings=self.settings,
+            project_root=project_root,
         )
-        for r in cur.fetchall():
-            hits.append(
-                SearchHit(
-                    ref=r[0],
-                    ref_type="fact",
-                    summary=r[1],
-                    score=abs(float(r[5])),
-                    kind=r[2],
-                    pinned=bool(r[3]),
-                    created_at=datetime.fromisoformat(r[4]),
-                )
-            )
-        return hits
 
     def _row_to_fact(self, row: tuple[Any, ...]) -> Fact:
         fact_id = row[0]

@@ -54,6 +54,7 @@ class SearchHit(BaseModel):
     score: float
     kind: str | None = None  # fact kind, or None for episodes
     stale: bool = False
+    stale_reason: str | None = None
     pinned: bool = False
     created_at: datetime
 

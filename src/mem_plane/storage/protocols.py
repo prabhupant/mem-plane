@@ -80,9 +80,26 @@ class PendingItem:
 class SearchRequest:
     project_id: str
     query: str
+    top_k: int = 5
+    include_episodes: bool = True
+    kinds: list[FactKind] | None = None
     kind: FactKind | None = None
     include_superseded: bool = False
-    limit: int = 10
+    limit: int | None = None
+
+    @property
+    def effective_limit(self) -> int:
+        if self.limit is not None:
+            return self.limit
+        return min(max(self.top_k, 1), 20)
+
+    @property
+    def effective_kinds(self) -> list[FactKind] | None:
+        if self.kinds is not None:
+            return self.kinds
+        if self.kind is not None:
+            return [self.kind]
+        return None
 
 
 @runtime_checkable

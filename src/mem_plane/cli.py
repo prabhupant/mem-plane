@@ -102,8 +102,83 @@ def main(argv: Sequence[str] | None = None) -> int:
         finally:
             store.close()
 
-    print(f"Command '{args.command}' is not implemented yet.", file=sys.stderr)
-    return 1
+    if args.command == "serve":
+        import asyncio
+
+        from mem_plane.server.mcp_server import run_server_stdio
+
+        asyncio.run(run_server_stdio())
+        return 0
+
+    if args.command == "search":
+        import asyncio
+        import os
+
+        from mem_plane.config import Settings
+        from mem_plane.pipeline.embeddings import build_embedding_client
+        from mem_plane.project import resolve_project
+        from mem_plane.server.service import MemPlaneService
+        from mem_plane.storage.sqlite.store import SQLiteStore
+
+        settings = Settings()
+        store = SQLiteStore(
+            database=settings.db_path,
+            dimension=settings.embedding_dimension,
+            settings=settings,
+        )
+        proj_dir = args.project or os.getcwd()
+        proj = resolve_project(proj_dir)
+        store.upsert_project(proj)
+        client = build_embedding_client(settings)
+        svc = MemPlaneService(
+            store=store,
+            project_id=proj.project_id,
+            embedding_client=client,
+            settings=settings,
+            project_root=proj.root_path,
+        )
+        try:
+            out = asyncio.run(svc.search_memory(query=args.query))
+            print(out)
+            return 0
+        finally:
+            store.close()
+
+    if args.command == "status":
+        import asyncio
+        import os
+
+        from mem_plane.config import Settings
+        from mem_plane.pipeline.embeddings import build_embedding_client
+        from mem_plane.project import resolve_project
+        from mem_plane.server.service import MemPlaneService
+        from mem_plane.storage.sqlite.store import SQLiteStore
+
+        settings = Settings()
+        store = SQLiteStore(
+            database=settings.db_path,
+            dimension=settings.embedding_dimension,
+            settings=settings,
+        )
+        proj_dir = args.project or os.getcwd()
+        proj = resolve_project(proj_dir)
+        store.upsert_project(proj)
+        client = build_embedding_client(settings)
+        svc = MemPlaneService(
+            store=store,
+            project_id=proj.project_id,
+            embedding_client=client,
+            settings=settings,
+            project_root=proj.root_path,
+        )
+        try:
+            out = asyncio.run(svc.memory_status())
+            print(out)
+            return 0
+        finally:
+            store.close()
+
+    return 0
 
 
 if __name__ == "__main__":
