@@ -77,6 +77,31 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "bench":
         return run_bench(args.transcripts)
 
+    if args.command == "embed-pending":
+        from mem_plane.config import Settings
+        from mem_plane.pipeline.embedder_worker import embed_pending_batch_sync
+        from mem_plane.pipeline.embeddings import build_embedding_client
+        from mem_plane.storage.sqlite.store import SQLiteStore
+
+        settings = Settings()
+        client = build_embedding_client(settings)
+        if client is None:
+            print("Vector search / embeddings disabled or unavailable.", file=sys.stderr)
+            return 1
+
+        store = SQLiteStore(database=settings.db_path, dimension=settings.embedding_dimension)
+        try:
+            total = 0
+            while True:
+                count = embed_pending_batch_sync(store, client, limit=64)
+                if count == 0:
+                    break
+                total += count
+            print(f"Embedded {total} pending items.")
+            return 0
+        finally:
+            store.close()
+
     print(f"Command '{args.command}' is not implemented yet.", file=sys.stderr)
     return 1
 
